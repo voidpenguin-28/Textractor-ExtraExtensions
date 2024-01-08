@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Extension.cpp" />
+    <ClCompile Include="ExtensionImpl.cpp" />
+    <ClCompile Include="HtmlParser.cpp" />
+    <ClCompile Include="ExtensionConfig.cpp" />
+    <ClCompile Include="Libraries\curlproc.cpp" />
+    <ClCompile Include="Libraries\inihandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Extension.h" />
+    <ClInclude Include="ExtensionConfig.h" />
+    <ClInclude Include="HtmlParser.h" />
+    <ClInclude Include="NameMapper.h" />
+    <ClInclude Include="Libraries\stringconvert.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\curlproc.h" />
+    <ClInclude Include="Libraries\inihandler.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="NameRetriever.h" />
+    <ClInclude Include="NameMappingManager.h" />
+    <ClInclude Include="HttpClient.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{27688e67-07dc-48c1-acac-05cfbd5244db}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
