@@ -6,7 +6,7 @@ This sometimes may be necessary to translate certain names properly since the ka
 
 This extension will automatically retrieve the Japanese and English names of all known characters for a specified visual novel from https://vndb.org (popular visual novel database site). Each sentence received by Textrator will then be checked if a particular character name is found and will auto-translate it into its English equivalent, based on an appropriate name mapping.
 
-![Example](Textractor.VndbCharNameMapper/img/example1.png)
+![Example](img/example1.png)
 
 The following are auto-translated:
 * Full names (first & last name)
@@ -37,7 +37,7 @@ The following are auto-translated:
 	- Ensure that the chosen architecture matches the architecture of Textractor.
 		- If you are using the x86 version of Textractor, then use the x86 extension
 		- If you are using the x64 version of Textractor, then use the x64 extension
-	- ![Copy Example](Textractor.VndbCharNameMapper/img/copy-extension.png)
+	- ![Copy Example](img/copy-extension.png)
 3. Add the extension to Textractor
 	- An extension can be added by opening Textractor, pressing the "Extensions" button, right-clicking the extensions panel, then selecting 'Add extension'.
 		- Add the 'Textractor.Textractor.VndbCharNameMapper.xdll' from Textractor's root directory.
@@ -47,7 +47,7 @@ The following are auto-translated:
 		- Also make sure this extension is placed **before** any translation or display-related extensions.
 			- Ex: "Google Translate", "DevTools DeepL Translate", "Extra Window", "Extra Newlines", etc.
 		- An extension's order can be changed by clicking and dragging it.
-		- ![Extension Order](Textractor.VndbCharNameMapper/img/extension-order.png)
+		- ![Extension Order](img/extension-order.png)
 4. **This extension relies on *curl.exe* to perform network requests to vndb. Ensure that curl is installed on your machine.**
 	- **curl** is already installed/available on [all versions of Windows 11] & [Windows 10 ver.1803 or later].
 		- Versions of curl pre-packaged with Windows can be found here: C:\Windows\System32\curl.exe
@@ -55,7 +55,7 @@ The following are auto-translated:
 		- If curl is found, you should get a message like "*curl: try 'curl --help' for more information*"
 		- If curl is not found, you should get a message like "*'curl' is not recognized as an internal or external command,
 operable program or batch file.*"
-		- ![Curl Check](Textractor.VndbCharNameMapper/img/curl-check.png)
+		- ![Curl Check](img/curl-check.png)
 	- If you do not have curl on your machine, you can download/install it from here: https://curl.se/download.html#Win32
 	- If you would like to use a portable version of curl with this extension, you can configure a custom curl path for the extension to use. Reference the [Config Values](#config-values) section of this document for further details.
 
@@ -72,7 +72,7 @@ operable program or batch file.*"
 3. Adjust the config section for this extension in the "Textractor.ini" file accordingly.
 	- Reference the [Config Values](#config-values) section for each possible value to adjust.
 		- The most important config value that must be adjusted is the **VnIds** value.
-	- ![Config Example](Textractor.VndbCharNameMapper/img/config-example.png)
+	- ![Config Example](img/config-example.png)
 
 ## Config Values
 Here is the list of currently supported config values for this extension.
@@ -90,7 +90,7 @@ Here is the list of currently supported config values for this extension.
 	- vndb has a numeric identifier for every visual novel on the site.
 		- This identifier can primarily be found in 2 places
 			1. In the url for a visual novel entry: "[https://vndb.org/**v4**](https://vndb.org/v4)"
-			2. The name of the primary tab of the visual novel entry. ![VnId Tab Example](Textractor.VndbCharNameMapper/img/vnid-tab-example.png)
+			2. The name of the primary tab of the visual novel entry. ![VnId Tab Example](img/vnid-tab-example.png)
 	- Add the visual novel identifiers for all visual novels you would like to map names for.
 		- Ex: If you wanted to map names for the visual novel "Clannad", you would assign the value "v4" to "VnIds"
 		```ini
