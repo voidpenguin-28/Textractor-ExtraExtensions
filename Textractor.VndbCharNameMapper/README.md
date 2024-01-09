@@ -40,7 +40,7 @@ The following are auto-translated:
 	- ![Copy Example](img/copy-extension.png)
 3. Add the extension to Textractor
 	- An extension can be added by opening Textractor, pressing the "Extensions" button, right-clicking the extensions panel, then selecting 'Add extension'.
-		- Add the 'Textractor.Textractor.VndbCharNameMapper.xdll' from Textractor's root directory.
+		- Add the 'Textractor.VndbCharNameMapper.xdll' from Textractor's root directory.
 	- **Once the extension is added, the positioning of the extension in the extension list is important.**
 		- Make sure this extension is placed **after** any text fix extensions.
 			- Ex: "Remove Repeated Characters", "Remove Repeated Phrases", etc.
