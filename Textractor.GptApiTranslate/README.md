@@ -282,7 +282,7 @@ Here is the list of currently supported config values for this extension.
 		- In other words, using the default config value as an example, the line at index '99' can be up to 300 chars, the lines at index '98' can be up to 300 chars, etc.
 	- If a line exceeds this limit, it will be truncated to match the limit. Characters are trimmed from the beginning of the string, not the end.
 		- Ex: If this config value is '10', then line 'ABCDEFGHIJKLMNOP' will be truncated to 'GHIJKLMNOP' before being sent to the GPT request.
-14. SkipAsciiText: A line will not be translated if it entirely consists of ASCII text (ex: 0-9, a-z, A-Z).
+14. **SkipAsciiText**: A line will not be translated if it entirely consists of ASCII text (ex: 0-9, a-z, A-Z).
 	- Default value: '1' (skip if all ASCII).
 	- In other words, the line will simply be left as is.
 	- If the line contains even a single non-ASCII character, then the request to GPT will be made.
