@@ -32,7 +32,7 @@ wstring GptApiTranslator::translateW(SentenceInfoWrapper& sentInfoWrapper, const
 	wstring translation = callGptApi(config, sysMsg, userMsg);
 
 	translation = _gptMsgHandler.getLastTranslationFromResponse(translation);
-	return _formatter.format(translation);
+	return _formatter.formatTranslation(translation);
 }
 
 
@@ -64,14 +64,15 @@ bool GptApiTranslator::isAllAscii(const wstring& str) const {
 bool GptApiTranslator::addJpTextToHistory(SentenceInfoWrapper& sentInfoWrapper, 
 	const wstring& text, const ExtensionConfig& config) const
 {
-	size_t zeroWidthSpaceIndex = text.find(ZERO_WIDTH_SPACE);
+	wstring formattedText = _formatter.formatJp(text);
+	size_t zeroWidthSpaceIndex = formattedText.find(ZERO_WIDTH_SPACE);
 
 	if (zeroWidthSpaceIndex != wstring::npos) {
-		_msgHistTracker.addToHistory(sentInfoWrapper, text.substr(0, zeroWidthSpaceIndex));
+		_msgHistTracker.addToHistory(sentInfoWrapper, formattedText.substr(0, zeroWidthSpaceIndex));
 		if (config.skipIfZeroWidthSpace) return false;
 	}
 	else {
-		_msgHistTracker.addToHistory(sentInfoWrapper, text);
+		_msgHistTracker.addToHistory(sentInfoWrapper, formattedText);
 	}
 
 	return true;

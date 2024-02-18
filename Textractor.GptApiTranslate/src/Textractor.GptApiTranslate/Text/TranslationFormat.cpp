@@ -4,12 +4,26 @@
 #include <cctype>
 
 #pragma warning(suppress: 4566)
-const vector<wstring> DefaultTranslationFormatter::JP_QUOTE_MARKS = { L"「", L"」", L"『", L"』" };
+const vector<pair<wstring, wstring>> DefaultTranslationFormatter::JP_QUOTE_MARKS = { 
+	pair<wstring, wstring>(L"「", L"」"),
+	pair<wstring, wstring>(L"『", L"』")
+};
 
 
 // *** PUBLIC
 
-wstring DefaultTranslationFormatter::format(wstring translation) const {
+wstring DefaultTranslationFormatter::formatJp(wstring jpSent) const {
+	for (const pair<wstring, wstring>& qtMrks : JP_QUOTE_MARKS) {
+		if (contains(jpSent, qtMrks.first) && !contains(jpSent, qtMrks.second))
+			jpSent += qtMrks.second;
+		else if (contains(jpSent, qtMrks.second) && !contains(jpSent, qtMrks.first))
+			jpSent = qtMrks.first + jpSent;
+	}
+
+	return jpSent;
+}
+
+wstring DefaultTranslationFormatter::formatTranslation(wstring translation) const {
 	if (translation.empty()) return translation;
 
 	// ensure jp quote marks are placed with english equivalent "
@@ -34,11 +48,16 @@ wstring DefaultTranslationFormatter::format(wstring translation) const {
 
 // *** PRIVATE
 
+bool DefaultTranslationFormatter::contains(const wstring& str, const wstring substr) const {
+	return str.find(substr) != wstring::npos;
+}
+
 wstring DefaultTranslationFormatter::jpToEnQuoteMarks(wstring text) const {
 	static wstring quoteChStr = wstring(1, QUOT_CH);
 
-	for (const wstring& qtMrk : JP_QUOTE_MARKS) {
-		text = StrHelper::replace(text, qtMrk, quoteChStr);
+	for (const pair<wstring, wstring>& qtMrks : JP_QUOTE_MARKS) {
+		text = StrHelper::replace(text, qtMrks.first, quoteChStr);
+		text = StrHelper::replace(text, qtMrks.second, quoteChStr);
 	}
 
 	return text;

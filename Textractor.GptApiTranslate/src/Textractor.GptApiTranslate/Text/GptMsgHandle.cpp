@@ -32,11 +32,12 @@ wstring DefaultGptMsgHandler::createMsgFromHistory(
 }
 
 wstring DefaultGptMsgHandler::getLastTranslationFromResponse(const wstring& responseMsg) const {
+	static const wstring QUOT_MRK = L"\"";
 	vector<wstring> lines = regSplit(responseMsg);
 	wstring lastTranslation = L"";
 
 	for (int i = static_cast<int>(lines.size()) - 1; i >= 0; i--) {
-		if (lines[i].empty()) continue;
+		if (lines[i].empty() || lines[i] == QUOT_MRK) continue;
 		lastTranslation = lines[i];
 		break;
 	}
