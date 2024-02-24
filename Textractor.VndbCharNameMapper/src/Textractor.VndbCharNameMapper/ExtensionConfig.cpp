@@ -10,6 +10,7 @@ const wstring VN_IDS_KEY = L"VnIds";
 const wstring VN_ID_DELIM_KEY = L"VnIdDelim";
 const wstring MIN_NAME_SIZE_KEY = L"MinNameCharSize";
 const wstring ACTIVE_THREAD_ONLY_KEY = L"ActiveThreadOnly";
+const wstring SKIP_CONSOLE_AND_CLIPBOARD_KEY = L"SkipConsoleAndClipboard";
 const wstring RELOAD_CACHE_ON_LAUNCH_KEY = L"ReloadCacheOnLaunch";
 const wstring CUSTOM_CURL_PATH_KEY = L"CustomCurlPath";
 
@@ -31,6 +32,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 
 	changed |= setValue(*ini, CUSTOM_CURL_PATH_KEY, config.customCurlPath, overrideIfExists);
 	changed |= setValue(*ini, RELOAD_CACHE_ON_LAUNCH_KEY, config.reloadCacheOnLaunch, overrideIfExists);
+	changed |= setValue(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, config.skipConsoleAndClipboard, overrideIfExists);
 	changed |= setValue(*ini, ACTIVE_THREAD_ONLY_KEY, config.activeThreadOnly, overrideIfExists);
 	changed |= setValue(*ini, MIN_NAME_SIZE_KEY, config.minNameCharSize, overrideIfExists);
 	changed |= setValue(*ini, VN_ID_DELIM_KEY, config.vnIdDelim, overrideIfExists);
@@ -54,6 +56,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, VN_ID_DELIM_KEY, DefaultConfig.vnIdDelim),
 		getValOrDef(*ini, MIN_NAME_SIZE_KEY, DefaultConfig.minNameCharSize),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, DefaultConfig.activeThreadOnly),
+		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, DefaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, RELOAD_CACHE_ON_LAUNCH_KEY, DefaultConfig.reloadCacheOnLaunch),
 		getValOrDef(*ini, CUSTOM_CURL_PATH_KEY, DefaultConfig.customCurlPath)
 	);

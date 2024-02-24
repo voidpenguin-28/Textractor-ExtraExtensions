@@ -8,7 +8,7 @@
 class NameMappingManager {
 public:
 	virtual ~NameMappingManager() { }
-	virtual wstring applyAllNameMappings(const wstring& sentence, SentenceInfo& sentInfo) = 0;
+	virtual wstring applyAllNameMappings(const wstring& sentence, SentenceInfoWrapper& sentInfoWrapper) = 0;
 };
 
 class DefaultNameMappingManager : public NameMappingManager {
@@ -17,9 +17,9 @@ public:
 		const NameMapper& nameMapper, NameRetriever& nameRetriever)
 		: _configRetriever(configRetriever), _nameMapper(nameMapper), _nameRetriever(nameRetriever) { }
 
-	wstring applyAllNameMappings(const wstring& sentence, SentenceInfo& sentInfo) override {
+	wstring applyAllNameMappings(const wstring& sentence, SentenceInfoWrapper& sentInfoWrapper) override {
 		ExtensionConfig config = _configRetriever.getConfig();
-		if (!isAllowed(config, sentInfo)) return sentence;
+		if (!isAllowed(config, sentInfoWrapper)) return sentence;
 
 		vector<string> vnIdList = getVnIds(config);
 		wstring newSentence = applyAllNameMappings(vnIdList, sentence, config.minNameCharSize);
@@ -30,10 +30,30 @@ private:
 	const NameMapper& _nameMapper;
 	NameRetriever& _nameRetriever;
 
-	bool isAllowed(const ExtensionConfig& config, SentenceInfo& sentInfo) {
+	bool isAllowed(const ExtensionConfig& config, SentenceInfoWrapper& sentInfoWrapper) {
 		if (config.disabled) return false;
-		if (config.activeThreadOnly && !sentInfo["current select"]) return false;
-		if (sentInfo["process id"] == 0) return false; // skips console and clipboard threads
+		if (config.activeThreadOnly && !sentInfoWrapper.isActiveThread()) return false;
+		if (!meetsConsoleAndClipboardRequirements(sentInfoWrapper, config)) return false;
+
+		return true;
+	}
+
+	bool meetsConsoleAndClipboardRequirements(
+		SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const
+	{
+		wstring threadName = sentInfoWrapper.getThreadName();
+
+		switch (config.skipConsoleAndClipboard) {
+		case 1:
+			if (sentInfoWrapper.threadIsConsoleOrClipboard()) return false;
+			break;
+		case 2:
+			if (threadName == L"Console") return false;
+			break;
+		case 3:
+			if (threadName == L"Clipboard") return false;
+			break;
+		}
 
 		return true;
 	}

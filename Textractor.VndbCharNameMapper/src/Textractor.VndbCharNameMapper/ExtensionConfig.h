@@ -11,18 +11,21 @@ struct ExtensionConfig {
 	string vnIdDelim;
 	int minNameCharSize;
 	bool activeThreadOnly;
+	int skipConsoleAndClipboard;
 	bool reloadCacheOnLaunch;
 	string customCurlPath;
 
 	ExtensionConfig(bool disabled_, string urlTemplate_, string vnIds_, string vnIdDelim_, 
-		int minNameCharSize_, bool activeThreadOnly_, bool reloadCacheOnLaunch_, string customCurlPath_)
+		int minNameCharSize_, bool activeThreadOnly_, int skipConsoleAndClipboard_, 
+		bool reloadCacheOnLaunch_, string customCurlPath_)
 		: disabled(disabled_), urlTemplate(urlTemplate_), vnIds(vnIds_), vnIdDelim(vnIdDelim_),
-			minNameCharSize(minNameCharSize_), activeThreadOnly(activeThreadOnly_),
+			minNameCharSize(minNameCharSize_), activeThreadOnly(activeThreadOnly_), 
+			skipConsoleAndClipboard(skipConsoleAndClipboard_), 
 			reloadCacheOnLaunch(reloadCacheOnLaunch_), customCurlPath(customCurlPath_) { }
 };
 
 static const ExtensionConfig DefaultConfig = ExtensionConfig(
-	false, "https://vndb.org/{0}/chars", "", "|", 2, true, false, ""
+	false, "https://vndb.org/{0}/chars", "", "|", 2, true, 1, false, ""
 );
 
 

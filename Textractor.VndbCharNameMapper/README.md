@@ -126,8 +126,15 @@ Here is the list of currently supported config values for this extension.
 6. **ActiveThreadOnly**: Indicates if this extension should only map names for the currently selected thread in Textractor.
 	- Default value: '1' (map current thread only)
 	- If set to '0', then this extension will attempt to map names for all threads.
-		- However, the Console & Clipboard threads are always excluded from name mapping, regardless of this config value.
-7. **ReloadCacheOnLaunch**: Determines whether to reload the character name mapping cache each time Textractor is launched.
+7. **SkipConsoleAndClipboard**: Allows you to exclude the Console and/or Clipboard threads from mapping names.
+	- Default value: '1' (skip Console and Clipboard threads)
+	- Possible values:
+		- **0**: Do not skip Console nor Clipboard threads
+		- **1**: Skip both the Console and Clipboard threads
+		- **2**: Skip the Console thread (but not the Clipboard thread)
+		- **3**: Skip the Clipboard thread (but not the Console thread)
+	- This setting applies regardless of the value of the *ActiveThreadOnly* config key.
+8. **ReloadCacheOnLaunch**: Determines whether to reload the character name mapping cache each time Textractor is launched.
 	- Default value: '0' (do not reload)
 	- When this extension retrieves name mappings for a visual novel from vndb, it then caches them to a cache file called "\*\*ExtensionName\*\*.ini" (ex: *Textractor.VndbCharNameMapper.ini*).
 		- Name mappings are retrieved from this cache file before attempting to make a network request to vndb. This is to reduce the number of unneeded network requests your system makes to vndb.
@@ -135,7 +142,7 @@ Here is the list of currently supported config values for this extension.
 	- Therefore, by setting this config value to '1', each time Textractor is launched, the file cache will be reloaded from vndb.
 		- This can be useful for visual novel entries in vndb that may be constantly updated, such as recently released visual novels.
 		- Thus this helps ensure that the list of characters is up-to-date.
-8. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
+9. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
 	- Default value: '' (blank value indicates to use system curl path)
 	- As previously stated, curl is necessary for this extension to perform network requests.
 	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
@@ -162,6 +169,7 @@ VnIds=v4|v24
 VnIdDelim=|
 MinNameCharSize=1
 ActiveThreadOnly=1
+SkipConsoleAndClipboard=1
 ReloadCacheOnLaunch=1
 CustomCurlPath=
 ```

@@ -114,7 +114,8 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 bool ProcessSentence(wstring& sentence, SentenceInfo sentenceInfo)
 {
 	try {
-		sentence = _mappingManager->applyAllNameMappings(sentence, sentenceInfo);
+		SentenceInfoWrapper sentInfoWrapper(sentenceInfo);
+		sentence = _mappingManager->applyAllNameMappings(sentence, sentInfoWrapper);
 		return true;
 	}
 	catch (exception& ex) {
