@@ -256,15 +256,22 @@ Here is the list of currently supported config values for this extension.
 	- Default value: '1' (Active thread/hook only).
 	- If this value is set to 0, all threads/hooks will be translated.
 	- **Note that translating all threads/hooks will *significantly* increase API costs.**
-	- Another important note is that regardless of this value, the Console & Clipboard threads/hooks will always be ignored/excluded by this extension (and thus never translated).
-11. **UseHistoryForNonActiveThreads**: If all threads/hooks are being translated, then this value indicates whether or not to send in previous Japanese lines as context for non-active threads/hooks.
+11. **SkipConsoleAndClipboard**: Allows you to exclude the Console and/or Clipboard threads from being translated.
+	- Default value: '1' (skip Console and Clipboard threads)
+	- Possible values:
+		- **0**: Do not skip Console nor Clipboard threads
+		- **1**: Skip both the Console and Clipboard threads
+		- **2**: Skip the Console thread (but not the Clipboard thread)
+		- **3**: Skip the Clipboard thread (but not the Console thread)
+	- This setting applies regardless of the value of the *ActiveThreadOnly* config key.
+12. **UseHistoryForNonActiveThreads**: If all threads/hooks are being translated, then this value indicates whether or not to send in previous Japanese lines as context for non-active threads/hooks.
 	- Default value: '0' (do not send past lines for non-active threads; only send current line to translate).
 	- Note that this config value only applies if the **ActiveThreadOnly** config value is set to '0'.
 		- The active thread/hook will always send previous lines as context (based on the *MsgHistoryCount* config value).
 	- The number of previous lines sent in for each thread/hook will depend on the config value **MsgHistoryCount**.
 	- The primary purpose of this config value is to potentially save on costs and reduce system load.
 		- It reduces cost since it significantly cuts down the amount of text sent to GPT for non-active threads/hooks.
-12. **HistorySoftCharLimit**: This will restrict the number of past lines passed into GPT, based on the total length of all lines combined.
+13. **HistorySoftCharLimit**: This will restrict the number of past lines passed into GPT, based on the total length of all lines combined.
 	- Default value: '250' (do not pass in anymore past lines if total lines length exceeds 250)
 	- Note that the length of the actual line to translate is included in this total.
 	- Here's an example. Let's say this config value is set to '100' and the **MsgHistoryCount** is set to '3'.
@@ -276,20 +283,20 @@ Here is the list of currently supported config values for this extension.
 		- However, in this case no past messages will be sent in (only the line at index '99' will be sent), since the current line's length exceeds the limit.
 	- The purpose of this config value is to reduce costs and improve performance in cases where there is a sequence of very long sentences (ex: paragraphs) back to back.
 		- The longer a sentence is, the more it will cost you and the longer it may take for GPT to process the request.
-13. **MsgCharLimit**: This is the hard limit on how long each Japanese line sent to GPT is capable of being.
+14. **MsgCharLimit**: This is the hard limit on how long each Japanese line sent to GPT is capable of being.
 	- Default value: '300' (no line can exceed 300 characters).
 	- Note that the limit applies to each line, not the total combined length of all lines.
 		- In other words, using the default config value as an example, the line at index '99' can be up to 300 chars, the lines at index '98' can be up to 300 chars, etc.
 	- If a line exceeds this limit, it will be truncated to match the limit. Characters are trimmed from the beginning of the string, not the end.
 		- Ex: If this config value is '10', then line 'ABCDEFGHIJKLMNOP' will be truncated to 'GHIJKLMNOP' before being sent to the GPT request.
-14. **SkipAsciiText**: A line will not be translated if it entirely consists of ASCII text (ex: 0-9, a-z, A-Z).
+15. **SkipAsciiText**: A line will not be translated if it entirely consists of ASCII text (ex: 0-9, a-z, A-Z).
 	- Default value: '1' (skip if all ASCII).
 	- In other words, the line will simply be left as is.
 	- If the line contains even a single non-ASCII character, then the request to GPT will be made.
 	- This is just a simple way to potentially reduce the number of GPT requests the extension makes (thus potentially saving on costs).
 		- If the line to translate is already in English, then there's no need to send it in to GPT to translate it.
 	- If this config value is '0', then the line will still be sent in to GPT, regardless if it is all ASCII.
-15. **SkipIfZeroWidthSpace**: A line will not be translated if it contains a zero-width space (unicode character: \x200B).
+16. **SkipIfZeroWidthSpace**: A line will not be translated if it contains a zero-width space (unicode character: \x200B).
 	- Default value: '1' (skip if contains zero-width space)
 	- To give context, you may notice that most translation extensions for Textractor will return both the Japanese and English lines in the same response.
 		- Behind the scenes, Textractor distinguishes b/w the Japanese line and the Engilsh line in the text by looking for a zero-width space character, which is used to separate the Japanese and English text from one another.
@@ -299,7 +306,7 @@ Here is the list of currently supported config values for this extension.
 		- If a previous extension already translated the current line, then this extension does not need to translate it.
 		- If no zero-width space is found, then it will be assumed that the line still needs to be translated and thus will be sent to GPT.
 	- If this config value is set to '0', then a line will be sent to GPT to translate regardless if a zero-width space was found.
-16. **ShowErrMsg**: If something goes wrong during the GPT API request, then return the request error message in the sentence.
+17. **ShowErrMsg**: If something goes wrong during the GPT API request, then return the request error message in the sentence.
 	- Default value: '1' (show error msg in sentence).
 	- Here's an example. Let's first show what a sentence for a successful request would look like:
 		```
@@ -316,13 +323,13 @@ Here is the list of currently supported config values for this extension.
 		- Therefore, the request will simply fail in the background.
 		- In these cases, only the Japanese line will be returned, no English line.
 		- Without any printed error messages, the only way you would be able to get insight into what went wrong would be to set the **DebugMode** config value to '1', and then take a look at the debug log.
-17. **ThreadKeyFilterMode**: Indicates the filter mode used by the config key "ThreadKeyFilterList"
+18. **ThreadKeyFilterMode**: Indicates the filter mode used by the config key "ThreadKeyFilterList"
 	- Default value: '0' (disabled)
 	- Supported Filter Modes:
 		- **0**: Disabled. No filtering will occur, regardless if the "ThreadKeyFilterList" config value is set.
 		- **1**: Blacklist mode. Any thread names or thread keys specified in the ThreadKeyFilterList will be excluded from making GPT requests.
 		- **2**: Whitelist mode. Only thread names or thread keys specified in the ThreadKeyFilterList will be making GPT requests.
-18. **ThreadKeyFilterList**: A list of thread names or thread keys to filter by.
+19. **ThreadKeyFilterList**: A list of thread names or thread keys to filter by.
 	- For info on what a "ThreadKey" is, reference the following Notes section:
 		- https://github.com/voidpenguin-28/Textractor-ExtraExtensions/tree/main/Textractor.TextLogger#notes
 	- Note that filtering related config values are usually only relevant when config key **ActiveThreadOnly** is set to '0'.
@@ -331,10 +338,10 @@ Here is the list of currently supported config values for this extension.
 		- In other words, if thread name "GetGlyphOutlineA" is included in the list, then all thread keys that full under that thread name would be automatically included.
 	- Each thread name/key must be separated by the separator/delimiter specified in the "ThreadKeyFilterListDelim" config value.
 		-Ex: If "ThreadKeyFilterListDelim" is set to '|', then the 3 threads can be added to the filter list like so: '*GetGlyphOutlineA-1|GetCharABCWidthsA|GetGlyphOutlineA-2*'
-19. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
+20. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
 	- Default value: '|'
 	- If you changed this value to ';', then you would have to define the filter list like so: '*GetGlyphOutlineA-1;GetCharABCWidthsA;GetGlyphOutlineA-2*'
-20. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
+21. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
 	- Default value: '' (blank value indicates to use system curl path)
 	- As previously stated, curl is necessary for this extension to perform network requests.
 	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
@@ -350,7 +357,7 @@ Here is the list of currently supported config values for this extension.
 			CustomCurlPath=C:\\curl-win\\
 			;;...omitted...
 			```
-21. **DebugMode**: Allows you to log GPT request and response data to a log file.
+22. **DebugMode**: Allows you to log GPT request and response data to a log file.
 	- Default value: '0' (do not log any data to file)
 	- Request/response data will be logged to file if this config value is set to '1'.
 	- The log file will be called "gpt-request-log.txt" and will be located in the root directory of Textractor.
@@ -415,6 +422,7 @@ NumRetries=2
 SysMsgPrefix=Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines). However, only return the translation for the line that starts with '99:'.
 UserMsgPrefix=
 ActiveThreadOnly=1
+SkipConsoleAndClipboard=1
 UseHistoryForNonActiveThreads=0
 MsgHistoryCount=3
 HistorySoftCharLimit=250

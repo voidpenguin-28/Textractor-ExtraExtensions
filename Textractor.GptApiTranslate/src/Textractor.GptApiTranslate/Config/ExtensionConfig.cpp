@@ -13,6 +13,7 @@ const wstring NUM_RETRIES_KEY = L"NumRetries";
 const wstring SYS_MSG_PREFIX_KEY = L"SysMsgPrefix";
 const wstring USER_MSG_PREFIX_KEY = L"UserMsgPrefix";
 const wstring ACTIVE_THREAD_ONLY_KEY = L"ActiveThreadOnly";
+const wstring SKIP_CONSOLE_AND_CLIPBOARD_KEY = L"SkipConsoleAndClipboard";
 const wstring USE_HIST_FOR_NONACTIVE_THREADS_KEY = L"UseHistoryForNonActiveThreads";
 const wstring MSG_HISTORY_COUNT_KEY = L"MsgHistoryCount";
 const wstring HIST_SOFT_CHAR_LIMIT_KEY = L"HistorySoftCharLimit";
@@ -54,6 +55,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	changed |= setValue(*ini, HIST_SOFT_CHAR_LIMIT_KEY, config.historySoftCharLimit, overrideIfExists);
 	changed |= setValue(*ini, MSG_HISTORY_COUNT_KEY, config.msgHistoryCount, overrideIfExists);
 	changed |= setValue(*ini, USE_HIST_FOR_NONACTIVE_THREADS_KEY, config.useHistoryForNonActiveThreads, overrideIfExists);
+	changed |= setValue(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, config.skipConsoleAndClipboard, overrideIfExists);
 	changed |= setValue(*ini, ACTIVE_THREAD_ONLY_KEY, config.activeThreadOnly, overrideIfExists);
 	changed |= setValue(*ini, USER_MSG_PREFIX_KEY, config.userMsgPrefix, overrideIfExists);
 	changed |= setValue(*ini, SYS_MSG_PREFIX_KEY, config.sysMsgPrefix, overrideIfExists);
@@ -83,6 +85,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, SYS_MSG_PREFIX_KEY, defaultConfig.sysMsgPrefix),
 		getValOrDef(*ini, USER_MSG_PREFIX_KEY, defaultConfig.userMsgPrefix),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, defaultConfig.activeThreadOnly),
+		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, USE_HIST_FOR_NONACTIVE_THREADS_KEY, defaultConfig.useHistoryForNonActiveThreads),
 		getValOrDef(*ini, MSG_HISTORY_COUNT_KEY, defaultConfig.msgHistoryCount),
 		getValOrDef(*ini, HIST_SOFT_CHAR_LIMIT_KEY, defaultConfig.historySoftCharLimit),

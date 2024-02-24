@@ -44,8 +44,29 @@ bool GptApiTranslator::meetsExecutionRequirements(SentenceInfoWrapper& sentInfoW
 	if (config.disabled) return false;
 	if (config.activeThreadOnly && !sentInfoWrapper.isActiveThread()) return false;
 	if (!_threadFilter.isThreadAllowed(sentInfoWrapper, config)) return false;
-	if (sentInfoWrapper.threadIsConsoleOrClipboard()) return false;
+	if (!meetsConsoleAndClipboardRequirements(sentInfoWrapper, config)) return false;
+
 	if (config.skipAsciiText && isAllAscii(text)) return false;
+
+	return true;
+}
+
+bool GptApiTranslator::meetsConsoleAndClipboardRequirements(
+	SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const
+{
+	wstring threadName = sentInfoWrapper.getThreadName();
+
+	switch (config.skipConsoleAndClipboard) {
+	case 1:
+		if (sentInfoWrapper.threadIsConsoleOrClipboard()) return false;
+		break;
+	case 2:
+		if (threadName == L"Console") return false;
+		break;
+	case 3:
+		if (threadName == L"Clipboard") return false;
+		break;
+	}
 
 	return true;
 }

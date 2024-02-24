@@ -47,6 +47,8 @@ private:
 
 	bool meetsExecutionRequirements(SentenceInfoWrapper& sentInfoWrapper,
 		const wstring& text, const ExtensionConfig& config) const;
+	bool meetsConsoleAndClipboardRequirements(
+		SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const;
 	bool isAllAscii(const wstring& str) const;
 	bool addJpTextToHistory(SentenceInfoWrapper& sentInfoWrapper, 
 		const wstring& text, const ExtensionConfig& config) const;
