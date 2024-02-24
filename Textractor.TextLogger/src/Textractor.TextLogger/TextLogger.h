@@ -34,5 +34,7 @@ private:
 	FileWriterManager& _writerManager;
 
 	ExtensionConfig getConfig() const;
+	bool meetsConsoleAndClipboardRequirements(
+		SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const;
 	size_t trackThreadIndex(SentenceInfoWrapper& sentInfoWrapper) const;
 };

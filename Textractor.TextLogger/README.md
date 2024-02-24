@@ -111,10 +111,14 @@ Here is the list of currently supported config values for this extension.
 3. **ActiveThreadOnly**: Indicates if this extension should only log data for the current active thread/hook.
 	- Default value: '1' (only log current thread/hook)
 	- If set to '0', all attached threads/hooks will be logged
-4. **SkipConsoleAndClipboard**: Indicates if the Console & Clipboard threads should be excluding from logging.
-	- Default value: '1' (exclude logging for those 2 threads)
-	- If set to '0', then logging will be allowed for those 2 threads.
-	- In other words, if this is set to '1', even if config value 'ActiveThreadOnly' was set to '0' then the Console & Clipboard will be excluded.
+4. **SkipConsoleAndClipboard**: Indicates if the Console and/or Clipboard threads should be excluding from logging.
+	- Default value: '1' (skip Console and Clipboard threads)
+	- Possible values:
+		- **0**: Do not skip Console nor Clipboard threads
+		- **1**: Skip both the Console and Clipboard threads
+		- **2**: Skip the Console thread (but not the Clipboard thread)
+		- **3**: Skip the Clipboard thread (but not the Console thread)
+	- This setting applies regardless of the value of the *ActiveThreadOnly* config key.
 5. **MsgTemplate**: Indicates the structure of each message logged to a file.
 	- Default value: '\[\{4\}\]\[\{1\}\]\[\{2\}\] \{0\}'
 	- This allows you to include additional details within a logged line beyond just the line itself.

@@ -10,7 +10,7 @@ void FileTextLogger::log(const wstring& sentence, SentenceInfoWrapper& sentInfoW
 
 	if (config.disabled) return;
 	if (config.activeThreadOnly && !sentInfoWrapper.isActiveThread()) return;
-	if (config.skipConsoleAndClipboard && sentInfoWrapper.threadIsConsoleOrClipboard()) return;
+	if (!meetsConsoleAndClipboardRequirements(sentInfoWrapper, config)) return;
 
 	size_t threadIndex = trackThreadIndex(sentInfoWrapper);
 	wstring threadKey = _keyGenerator.getThreadKey(threadIndex, sentInfoWrapper, config);
@@ -27,6 +27,26 @@ void FileTextLogger::log(const wstring& sentence, SentenceInfoWrapper& sentInfoW
 
 ExtensionConfig FileTextLogger::getConfig() const {
 	return _configRetriever.getConfig();
+}
+
+bool FileTextLogger::meetsConsoleAndClipboardRequirements(
+	SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const
+{
+	wstring threadName = sentInfoWrapper.getThreadName();
+
+	switch (config.skipConsoleAndClipboard) {
+	case 1:
+		if (sentInfoWrapper.threadIsConsoleOrClipboard()) return false;
+		break;
+	case 2:
+		if (threadName == L"Console") return false;
+		break;
+	case 3:
+		if (threadName == L"Clipboard") return false;
+		break;
+	}
+
+	return true;
 }
 
 size_t FileTextLogger::trackThreadIndex(SentenceInfoWrapper& sentInfoWrapper) const {

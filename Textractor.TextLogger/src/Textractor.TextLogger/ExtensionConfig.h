@@ -14,7 +14,7 @@ struct ExtensionConfig {
 	const bool disabled;
 	const wstring logFilePathTemplate; // {0}: process name; {1}: thread key; {2}: thread name
 	const bool activeThreadOnly;
-	const bool skipConsoleAndClipboard;
+	const int skipConsoleAndClipboard;
 	const wstring msgTemplate; // {0}: sentence; {1}: process name; {2}: thread key; {3}: thread name; {4}: current date time
 	const bool onlyThreadNameAsKey;
 	const FilterMode threadKeyFilterMode;
@@ -22,7 +22,7 @@ struct ExtensionConfig {
 	const wstring threadKeyFilterListDelim;
 
 	ExtensionConfig(const bool disabled_, const wstring& logFilePathTemplate_, const bool activeThreadOnly_, 
-		const bool skipConsoleAndClipboard_, const wstring& msgTemplate_, const bool onlyThreadNameAsKey_,
+		const int skipConsoleAndClipboard_, const wstring& msgTemplate_, const bool onlyThreadNameAsKey_,
 		const FilterMode threadKeyFilterMode_, const wstring& threadKeyFilterList_, 
 		const wstring& threadKeyFilterListDelim_)
 		: disabled(disabled_), logFilePathTemplate(logFilePathTemplate_), activeThreadOnly(activeThreadOnly_), 
