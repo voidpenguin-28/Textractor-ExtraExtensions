@@ -101,5 +101,8 @@
     <ClInclude Include="History\MultiThreadMsgHistoryTrack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ExtensionDepsContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

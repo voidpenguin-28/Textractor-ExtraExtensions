@@ -67,12 +67,17 @@ vector<string> DefaultGptApiCaller::createHeaders(const GptConfig& config) const
 pair<bool, string> DefaultGptApiCaller::callCompletionApi(
 	const GptConfig& config, const string& request, const vector<string>& headers) const
 {
+	static const function<bool(const string&)> callRetryCondition =
+		[this](const string& r) { return hasProcessingError(r); };
+
 	string response;
 	bool error;
 
 	try {
-		response = _httpClient.httpPost(config.url, request, headers, config.timeoutSecs, config.numRetries);
-		error = hasError(response);
+		response = _httpClient.httpPost(config.url, request, 
+			headers, config.timeoutSecs, config.numRetries, callRetryCondition);
+
+		error = hasAnyError(response);
 	}
 	catch (exception& ex) {
 		response = ex.what();
@@ -99,6 +104,12 @@ void DefaultGptApiCaller::writeToLog(const string& request, const string& respon
 	_logger.log(logLevel, msg);
 }
 
-bool DefaultGptApiCaller::hasError(const string& response) const {
-	return response.find("\"error\"") != string::npos;
+bool DefaultGptApiCaller::hasAnyError(const string& response) const {
+	static const string errKey = "\"error\"";
+	return response.find(errKey) != string::npos;
+}
+
+bool DefaultGptApiCaller::hasProcessingError(const string& response) const {
+	static const string processingErrMsg = "The server had an error processing your request.";
+	return response.find(processingErrMsg) != string::npos;
 }

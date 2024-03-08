@@ -56,5 +56,6 @@ private:
 		const string& request, const vector<string>& headers) const;
 	string parseMessageFromResponse(const string& response, bool error) const;
 	void writeToLog(const string& request, const string& response, bool error) const;
-	bool hasError(const string& response) const;
+	bool hasAnyError(const string& response) const;
+	bool hasProcessingError(const string& response) const;
 };

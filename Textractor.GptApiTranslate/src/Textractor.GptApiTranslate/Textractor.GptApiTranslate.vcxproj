@@ -155,6 +155,7 @@
     <ClInclude Include="Config\Common.h" />
     <ClInclude Include="Extension.h" />
     <ClInclude Include="Config\ExtensionConfig.h" />
+    <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="History\MultiThreadMsgHistoryTrack.h" />
     <ClInclude Include="Network\GptApiCaller.h" />
     <ClInclude Include="Text\GptMsgHandle.h" />
