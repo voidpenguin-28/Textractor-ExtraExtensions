@@ -145,11 +145,18 @@ bool IniContents::removeSection(const wstring& section) {
 
 const IniParser IniContents::_iniParser{};
 
-const vector<pair<wstring, wstring>> IniContents::_formatPairs = {
-	pair<wstring, wstring>(L"\\r", L"\r"),
-	pair<wstring, wstring>(L"\\n", L"\n"),
-	pair<wstring, wstring>(L"\\t", L"\t"),
-	pair<wstring, wstring>(L"\\\\", L"\\")
+const vector<pair<wregex, wstring>> IniContents::_formatPairs = {
+	pair<wregex, wstring>(wregex(L"(^|[^\\\\])(\\\\r)"), L"\r"),
+	pair<wregex, wstring>(wregex(L"(^|[^\\\\])(\\\\n)"), L"\n"),
+	pair<wregex, wstring>(wregex(L"(^|[^\\\\])(\\\\t)"), L"\t"),
+	pair<wregex, wstring>(wregex(L"(^|.)(\\\\\\\\)"), L"\\")
+};
+
+const vector<pair<wstring, wstring>> IniContents::_formatPairs2 = {
+	pair<wstring, wstring>(L"\\", L"\\\\"),
+	pair<wstring, wstring>(L"\r", L"\\r"),
+	pair<wstring, wstring>(L"\n", L"\\n"),
+	pair<wstring, wstring>(L"\t", L"\\t"),
 };
 
 
@@ -243,15 +250,15 @@ bool IniContents::indexValid(size_t index) const {
 
 wstring IniContents::formatReadKeyValue(wstring value) const {
 	for (auto& format : _formatPairs) {
-		value = replace(value, format.first, format.second);
+		value = regex_replace(value, format.first, L"$1" + format.second);
 	}
 
 	return value;
 }
 
 wstring IniContents::formatWriteKeyValue(wstring value) const {
-	for (auto& format : _formatPairs) {
-		value = replace(value, format.second, format.first);
+	for (auto& format : _formatPairs2) {
+		value = replace(value, format.first, format.second);
 	}
 
 	return value;
