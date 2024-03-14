@@ -54,7 +54,8 @@ public:
 	bool removeSection(const wstring& section);
 private:
 	static const IniParser _iniParser;
-	static const vector<pair<wstring, wstring>> _formatPairs;
+	static const vector<pair<wregex, wstring>> _formatPairs;
+	static const vector<pair<wstring, wstring>> _formatPairs2;
 
 	vector<wstring> _iniLines;
 	mutable mutex _mutex;
