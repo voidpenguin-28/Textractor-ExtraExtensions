@@ -54,7 +54,7 @@ const wstring IniParser::SECT_START_CH = L"[";
 const wstring IniParser::SECT_END_CH = L"]";
 const wstring IniParser::MATCH_ANY = L"*";
 const wregex IniParser::_sectionPattern = wregex(L"^\\s{0,}(\\[.+\\])\\s{0,}$");
-const wregex IniParser::_keyValPattern = wregex(L"^\\s{0,}(.+)\\s{0,}=\\s{0,}(.{0,})\\s{0,}$");
+const wregex IniParser::_keyValPattern = wregex(L"^\\s{0,}([^=]+)\\s{0,}=\\s{0,}(.{0,})\\s{0,}$");
 
 
 wstring IniParser::trimWhitespace(const wstring& str) const {
