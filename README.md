@@ -13,6 +13,7 @@ Here is a list of currently available extensions:
 1. [**GptApiTranslate**](Textractor.GptApiTranslate): Leverages the GPT Completions API to translate text/lines, with a reasonable degree of flexibility in configuration.
 2. [**VndbCharNameMapper**](Textractor.VndbCharNameMapper): Auto-maps character names from Japanese to Romaji using the character database of vndb.org for specified visual novels.
 3. [**TextLogger**](Textractor.TextLogger): Provides the capability to write text from each/any thread/hook to a log file. This essentially allows you to export data/text piped by Textractor.
+4. [**PythonInterpretter**](Textractor.PythonInterpretter): Allows you to write and use python scripts in Textractor. This is essentially the equivalent of a python Textractor extension.
 
 <br>
 Documentation for each extension is available in their corresponding page in this repo.
