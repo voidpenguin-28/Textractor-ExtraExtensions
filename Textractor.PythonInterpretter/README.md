@@ -17,7 +17,7 @@ Under the hood, this extension is doing the following:
 
 <br>
 
-**Note: The extension requires python scripts to be defined in a very specific way. Please follow the instructions in the [Creating a Textractor Python Script](creating-a-textractor-python-script) section for instructions on how to define your scripts.**
+**Note: The extension requires python scripts to be defined in a very specific way. Please follow the instructions in the [Creating a Textractor Python Script](#creating-a-textractor-python-script) section for instructions on how to define your scripts.**
 
 ### How to Use (TL;DR):
 1. Ensure [python >= v3.0](https://www.python.org/downloads/windows/) is installed on your machine.
