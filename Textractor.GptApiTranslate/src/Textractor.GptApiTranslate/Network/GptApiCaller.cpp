@@ -3,8 +3,8 @@
 #include <fstream>
 
 const string DefaultGptApiCaller::_msgTemplate = "{\"model\":\"{0}\",\"messages\":[{\"role\":\"system\",\"content\":\"{1}\"},{\"role\":\"user\",\"content\":\"{2}\"}]}";
-const regex DefaultGptApiCaller::_responseMsgPattern = regex("\"[Cc]ontent\":\\s{0,}\"(.{0,})\"$");
-const regex DefaultGptApiCaller::_responseErrPattern = regex("\"[Mm]essage\":\\s{0,}\"(.{0,})\",$");
+const regex DefaultGptApiCaller::_responseMsgPattern = regex("\"[Cc]ontent\":\\s{0,}\"((?:\\\\\"|[^\"])*)\"");
+const regex DefaultGptApiCaller::_responseErrPattern = regex("\"[Mm]essage\":\\s{0,}\"((?:\\\\\"|[^\"])*)\"");
 //"content": "\n\nHello there, how may I assist you today?",
 
 
