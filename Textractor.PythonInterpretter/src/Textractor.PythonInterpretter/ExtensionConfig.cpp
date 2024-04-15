@@ -66,7 +66,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, RELOAD_ON_SCRIPT_MOD_KEY, defaultConfig.reloadOnScriptModified),
 		getValOrDef(*ini, PIP_PACKAGE_INSTALL_MODE_KEY, defaultConfig.pipPackageInstallMode),
 		getValOrDef(*ini, PIP_REQUIREMENTS_TXT_PATH_KEY, defaultConfig.pipRequirementsTxtPath),
-		getValOrDef(*ini, SCRIPT_CUSTOM_VARS_KEY, defaultConfig.scriptCustomVars),
+		unenclose(getValOrDef(*ini, SCRIPT_CUSTOM_VARS_KEY, defaultConfig.scriptCustomVars), '"'),
 		getValOrDef(*ini, SCRIPT_CUSTOM_VARS_DELIM_KEY, defaultConfig.scriptCustomVarsDelim),
 		getValOrDef(*ini, CUSTOM_PYTHON_PATH_KEY, defaultConfig.customPythonPath)
 	);
@@ -141,4 +141,11 @@ Logger::Level IniConfigRetriever::strToLogLevel(const string& logLevelStr, Logge
 	else if (logLevelStr == "Error") return Logger::Error;
 	else if (logLevelStr == "Fatal") return Logger::Fatal;
 	else return defaultValue;
+}
+
+string IniConfigRetriever::unenclose(string str, const char encloseCh) {
+	if (str.length() < 2) return str;
+
+	return (str[0] == encloseCh && str[str.length() - 1] == encloseCh) ?
+		str.substr(1, str.length() - 2) : str;
 }

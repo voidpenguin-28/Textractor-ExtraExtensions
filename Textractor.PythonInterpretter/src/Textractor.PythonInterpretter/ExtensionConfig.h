@@ -72,4 +72,5 @@ private:
 	int getValOrDef(IniContents& ini, const wstring& key, int defaultValue);
 	Logger::Level getValOrDef(IniContents& ini, const wstring& key, Logger::Level defaultValue);
 	Logger::Level strToLogLevel(const string& logLevelStr, Logger::Level defaultValue);
+	string unenclose(string str, const char encloseCh);
 };
