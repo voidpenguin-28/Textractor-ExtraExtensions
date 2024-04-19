@@ -74,5 +74,11 @@
     <ClInclude Include="ThreadKeyGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Libraries\winmsg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtensionDepsContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

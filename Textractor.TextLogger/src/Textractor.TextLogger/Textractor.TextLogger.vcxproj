@@ -151,7 +151,9 @@
     <ClInclude Include="DirectoryCreator.h" />
     <ClInclude Include="FileWriter.h" />
     <ClInclude Include="Libraries\datetime.h" />
+    <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="Libraries\inihandler.h" />
+    <ClInclude Include="Libraries\winmsg.h" />
     <ClInclude Include="LoggerTextHandle.h" />
     <ClInclude Include="ProcessNameRetriever.h" />
     <ClInclude Include="TextLogger.h" />
