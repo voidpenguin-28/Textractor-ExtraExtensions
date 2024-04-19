@@ -5,15 +5,15 @@
 using namespace std;
 
 struct ExtensionConfig {
-	bool disabled;
-	string urlTemplate;
-	string vnIds;
-	string vnIdDelim;
-	int minNameCharSize;
-	bool activeThreadOnly;
-	int skipConsoleAndClipboard;
-	bool reloadCacheOnLaunch;
-	string customCurlPath;
+	const bool disabled;
+	const string urlTemplate;
+	const string vnIds;
+	const string vnIdDelim;
+	const int minNameCharSize;
+	const bool activeThreadOnly;
+	const int skipConsoleAndClipboard;
+	const bool reloadCacheOnLaunch;
+	const string customCurlPath;
 
 	ExtensionConfig(bool disabled_, string urlTemplate_, string vnIds_, string vnIdDelim_, 
 		int minNameCharSize_, bool activeThreadOnly_, int skipConsoleAndClipboard_, 

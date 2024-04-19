@@ -151,8 +151,10 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Extension.h" />
     <ClInclude Include="ExtensionConfig.h" />
+    <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="HtmlParser.h" />
     <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="Libraries\winmsg.h" />
     <ClInclude Include="NameMapper.h" />
     <ClInclude Include="Libraries\curlproc.h" />
     <ClInclude Include="Libraries\inihandler.h" />

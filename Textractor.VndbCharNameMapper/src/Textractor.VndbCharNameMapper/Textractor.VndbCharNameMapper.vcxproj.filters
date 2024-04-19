@@ -22,6 +22,8 @@
     <ClInclude Include="NameRetriever.h" />
     <ClInclude Include="NameMappingManager.h" />
     <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="ExtensionDepsContainer.h" />
+    <ClInclude Include="Libraries\winmsg.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Libraries">

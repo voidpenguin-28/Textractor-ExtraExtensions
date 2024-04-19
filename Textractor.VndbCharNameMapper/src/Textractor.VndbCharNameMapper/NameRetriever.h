@@ -18,6 +18,7 @@ public:
 
 
 class NoNameRetriever : public NameRetriever {
+public:
 	wstring_map_pair getNameMappings(const string& vnId) override {
 		return wstring_map_pair();
 	}
