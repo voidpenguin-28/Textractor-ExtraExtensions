@@ -20,8 +20,10 @@ public:
 
 class DefaultPythonContainer : public PythonContainer {
 public:
-	DefaultPythonContainer(const string& moduleName, const ExtensionConfig& config) {
+	DefaultPythonContainer(const string& moduleName, ConfigRetriever& configRetriever) {
+		const ExtensionConfig config = configRetriever.getConfig();
 		const string logFilePath = config.logDirPath + moduleName + "-host-log.txt";
+		
 		_loggerEvents = make_unique<DynamicLoggerEvents>();
 		_logger = make_unique<FileLogger>(logFilePath, *_loggerEvents, config.logLevel);
 
@@ -51,7 +53,9 @@ public:
 			};
 
 		_pyProc = make_unique<DefaultPythonProcess>(*_mainProcManager, 
-			*_logger, *_eventHandler, *_initCodeReserve, *_packageInstaller, pipeGen);
+			*_logger, *_eventHandler, *_initCodeReserve, *_packageInstaller, pipeGen,
+			[&configRetriever]() { return configRetriever.getConfig(false).showLogConsole; }
+		);
 
 		_loggerEvents->addToOnLogLevelChangedEvent(
 			[moduleName, this](const Logger& logger, Logger::Level prevLevel, Logger::Level currLevel)

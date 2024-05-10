@@ -46,7 +46,7 @@ public:
 		);
 
 		_idGenerator = make_unique<DefaultThreadIdGenerator>();
-		_pyContainer = make_unique<DefaultPythonContainer>(moduleName, config);
+		_pyContainer = make_unique<DefaultPythonContainer>(moduleName, *_configRetriever);
 
 		_rootScriptManager = make_unique<DefaultScriptManager>(
 			_pyContainer->getPythonProcess(), *_cmdStrHandler, 

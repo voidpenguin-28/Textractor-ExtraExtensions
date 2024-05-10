@@ -14,10 +14,12 @@ public:
     struct CmdPars {
         const string rootName;
         const size_t bufferSize;
+        const int showLogConsole;
         const Logger::Level logLevel;
 
-        CmdPars(const string& rootName_, const size_t bufferSize_, const Logger::Level logLevel_)
-            : rootName(rootName_), bufferSize(bufferSize_), logLevel(logLevel_) { }
+        CmdPars(const string& rootName_, const size_t bufferSize_, 
+            const int showLogConsole_, const Logger::Level logLevel_)
+            : rootName(rootName_), bufferSize(bufferSize_), showLogConsole(showLogConsole_), logLevel(logLevel_) { }
     };
 
     virtual ~PythonInitCodeReserve() { }
@@ -75,6 +77,7 @@ public:
             + quoteWrap(mainScriptPath) + " "
             + quoteWrap(pars.rootName) + " "
             + quoteWrap(to_string(pars.bufferSize)) + " "
+            + quoteWrap(to_string(pars.showLogConsole)) + " "
             + quoteWrap(to_string(pyLogLevel)) + " "
             + quoteWrap(logFilePath)
             + " 2>> \"" + initFatalLogFilePath + "\"\"";
@@ -166,15 +169,17 @@ private:
     }
 
     string getCmdPiperLibCode() const {
-        static const string _initPythonTemplate = R"(
+        static const string _initPythonTemplate1 = R"(
 
-import sys, os
+import sys, os, locale
 import threading
 import win32pipe, win32file, win32event, pywintypes
+from subprocess import Popen, PIPE, CREATE_NEW_CONSOLE
 from io import StringIO
 import time
 import logging
 from logging.handlers import RotatingFileHandler
+
 
 class WinErr: #{
     FILE_NOT_FOUND = 2
@@ -192,9 +197,9 @@ class WinErr: #{
 class CommandPiper: #{
     CONNECT_TIMEOUT_MS = 500
     CONNECT_NUM_RETRIES = 5
-    NO_DATA_STR = '{1}'
-    STOP_CMD = '{3}'
-    FORCE_STOP_CMD = '{4}'
+    NO_DATA_STR = '{{1}}'
+    STOP_CMD = '{{3}}'
+    FORCE_STOP_CMD = '{{4}}'
     win_err = WinErr()
     
     def __init__(self, logger, pipe_name, buffer_size, init_event_name): #{
@@ -499,8 +504,11 @@ class CommandPiper: #{
     #}
 #}
 
+)";
+
+        static const string _initPythonTemplate2 = R"(
 class CmdPiperManager: #{
-    MANAGER_PIPER_ID = '{2}'
+    MANAGER_PIPER_ID = '{{2}}'
     
     def __init__(self, logger, pipe_base_name, buffer_size): #{
         self._logger = logger
@@ -604,12 +612,74 @@ class CmdPiperManager: #{
     #}
 #}
 
+
+class Console(Popen): #{
+    _encoding = 'utf-8'
+    _cmd_template = """
+import sys, os, locale
+
+os.system("color {0}")
+os.system("title {1}")
+encoding = '{2}'
+
+for line in sys.stdin:
+    try:
+        sys.stdout.buffer.write(line.encode(encoding))
+        sys.stdout.flush()
+    except BaseException as ex:
+        print(ex)
+"""
+    
+    def __init__(self, color=None, title=None): #{
+        cmd = self._cmd_template.format(color or '', title or '', self._encoding)
+        cmd = sys.executable, "-c", cmd
+        
+        os.environ['PYTHONIOENCODING'] = self._encoding
+        super().__init__(cmd, stdin=PIPE, bufsize=1, text=True, creationflags=CREATE_NEW_CONSOLE, encoding=self._encoding)
+    #}
+    
+    def is_alive(self): #{
+        return self.poll() == None
+    #}
+    
+    def write(self, msg): #{
+        self.stdin.write(msg + '\n')
+        self.stdin.flush()
+    #}
+#}
+
+class ConsoleHandler(logging.Handler): #{
+    def __init__(self, title=None): #{
+        self.console = Console(title=title)
+        logging.Handler.__init__(self=self)
+    #}
+    
+    def emit(self, record): #{
+        if not self.console.is_alive():
+            return
+        
+        msg = self._apply_color(record.levelno, self.format(record))
+        self.console.write(msg)
+    #}
+    
+    def _apply_color(self, level, msg): #{
+        if level >= logging.ERROR:
+            return '\033[91m' + msg + '\033[0m'
+        elif level >= logging.WARNING:
+           return '\033[93m' + msg + '\033[0m'
+        else:
+            return msg
+    #}
+#}
+
 class LoggerWriter: #{
+    _formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s')
+    
     def __init__(self, logger, level): #{
         self.logger = logger
         self.level = level
     #}
-
+    
     def write(self, message): #{
         if message and message.strip():
             self.logger.log(self.level, message.strip())
@@ -620,24 +690,30 @@ class LoggerWriter: #{
     #}
 
     @staticmethod
-    def create_logger(name, logLevel, logPath): #{
+    def create_logger(name, logLevel, logPath, use_console_logger=0): #{
         logger = logging.getLogger(name)
         
         f_hndl = RotatingFileHandler(logPath, encoding='utf-8', maxBytes=10*1024*1024, backupCount=0)
-        f_hndl.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
-        
+        f_hndl.setFormatter(LoggerWriter._formatter)
         logger.addHandler(f_hndl)
+        
+        if use_console_logger != 0: #{
+            c_hndl = ConsoleHandler('Testing')
+            c_hndl.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
+            logger.addHandler(c_hndl)
+        #}
+        
         logger.setLevel(logLevel)
         return logger
     #}
 #}
 
 )";
-
-        string initPython = WinApiHelper::replace(_initPythonTemplate, "{1}", PyNoData);
-        initPython = WinApiHelper::replace(initPython, "{2}", _managerPipeId);
-        initPython = WinApiHelper::replace(initPython, "{3}", StopCmd);
-        initPython = WinApiHelper::replace(initPython, "{4}", ForceStopCmd);
+        static const string _initPythonTemplateFull = _initPythonTemplate1 + _initPythonTemplate2;
+        string initPython = WinApiHelper::replace(_initPythonTemplateFull, "{{1}}", PyNoData);
+        initPython = WinApiHelper::replace(initPython, "{{2}}", _managerPipeId);
+        initPython = WinApiHelper::replace(initPython, "{{3}}", StopCmd);
+        initPython = WinApiHelper::replace(initPython, "{{4}}", ForceStopCmd);
         return initPython;
     }
 
@@ -647,15 +723,16 @@ class LoggerWriter: #{
 import sys
 sys.dont_write_bytecode = True
 import logging
-import {1} as ____
+import {{1}} as ____
 
 if __name__ == '__main__': #{
     script_name = sys.argv[0]
-    log_level = int(sys.argv[3])
-    log_path = sys.argv[4]
+    use_log_console = int(sys.argv[3])
+    log_level = int(sys.argv[4])
+    log_path = sys.argv[5]
     
     ____.main_logger = ____.LoggerWriter.create_logger(
-        script_name, log_level, log_path
+        script_name, log_level, log_path, use_log_console
     )
     sys.stdout = ____.LoggerWriter(____.main_logger, logging.INFO)
     sys.stderr = ____.LoggerWriter(____.main_logger, logging.ERROR)
@@ -679,6 +756,6 @@ if __name__ == '__main__': #{
 )";
 
         string moduleName = idToModuleName(id);
-        return WinApiHelper::replace(_mainExecCode, "{1}", moduleName);
+        return WinApiHelper::replace(_mainExecCode, "{{1}}", moduleName);
     }
 };

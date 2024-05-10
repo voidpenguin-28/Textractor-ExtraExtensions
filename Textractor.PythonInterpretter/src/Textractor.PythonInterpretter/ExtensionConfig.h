@@ -16,6 +16,7 @@ struct ExtensionConfig {
 	const bool reloadOnScriptModified;
 	const int pipPackageInstallMode; // 0: Skip if installed; 1: Update if installed; 2: Reinstall if installed
 	const string pipRequirementsTxtPath;
+	const int showLogConsole;
 	const string scriptCustomVars;
 	const string scriptCustomVarsDelim;
 	const string customPythonPath;
@@ -23,17 +24,18 @@ struct ExtensionConfig {
 	ExtensionConfig(bool disabled_, const string& scriptPath_, const string& logDirPath_, 
 		Logger::Level logLevel_, bool appendErrMsg_, bool activeThreadOnly_, int skipConsoleAndClipboard_,
 		bool reloadOnScriptModified_, int pipPackageInstallMode_, const string& pipRequirementsTxtPath_, 
-		const string& scriptCustomVars_, const string& scriptCustomVarsDelim_, const string& customPythonPath_)
+		const int showLogConsole_, const string& scriptCustomVars_, const string& scriptCustomVarsDelim_, 
+		const string& customPythonPath_)
 		: disabled(disabled_), scriptPath(scriptPath_), logDirPath(logDirPath_), logLevel(logLevel_), 
 			appendErrMsg(appendErrMsg_), activeThreadOnly(activeThreadOnly_), 
 			skipConsoleAndClipboard(skipConsoleAndClipboard_), reloadOnScriptModified(reloadOnScriptModified_), 
 			pipPackageInstallMode(pipPackageInstallMode_), pipRequirementsTxtPath(pipRequirementsTxtPath_), 
-			scriptCustomVars(scriptCustomVars_), scriptCustomVarsDelim(scriptCustomVarsDelim_),
-			customPythonPath(customPythonPath_) { }
+			showLogConsole(showLogConsole_), scriptCustomVars(scriptCustomVars_), 
+			scriptCustomVarsDelim(scriptCustomVarsDelim_), customPythonPath(customPythonPath_) { }
 };
 
 const ExtensionConfig DefaultConfig = ExtensionConfig(
-	false, "", "python-interpretter\\logs\\", Logger::Info, true, false, 1, true, 0, "", "", "||", ""
+	false, "", "python-interpretter\\logs\\", Logger::Info, true, false, 1, true, 0, "", 0, "", "||", ""
 );
 
 

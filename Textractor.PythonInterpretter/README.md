@@ -269,7 +269,18 @@ Here is the list of currently supported config values for this extension.
 	- If you use backslashes in your path, **please double the backslashes**
 		- Ex: '*python-interpetter\\\\scripts\\\\JpToRomaji\\\\*' instead of '*python-interpetter\\scripts\\JpToRomaji\\*'
 	- For further information on the 'requirements.txt' file used by 'pip', such as how to define one, reference [pip's documentation on it](https://pip.pypa.io/en/stable/reference/requirements-file-format/).
-11. **ScriptCustomVars**: Allows you to define custom variables that get passed to your python functions.
+11. **ShowLogConsole**: If enabled (set to '1'), a console window will be shown which will display all python logging in real-time.
+	- Default value: '0' (disabled, no log window shown)
+	- Note that this will only show python activity (the same data written to "[*Extension-Name*]-client-log.txt")
+		- In other words, data logged to "[*Extension-Name*]-extension-log.txt" and "[*Extension-Name*]-host-log.txt" will not be shown.
+	- Warning messages will be display in yellow. Error and Fatal messages will be displayed in red.
+	- Important Notes
+		- **Note that changes to this config value will only be recognized on script/extension reload or Textractor restart.**
+		- Some unicode characters (such as Japanese characters) may not display properly by default in the console window. This is usually because the native font used by the Windows command line may not support unicode characters.
+			- To fix this, you would have to change the font used by the command line to a font that supports your desired unicode characters (ex: 'MS Gothic' for Japanese).
+			- You can change the command line font by: clicking the top-left corner of the window > Properties > Font tab > change the font > OK button.
+		- It is safe to close the console window at any point. This extension will simply stop trying to write to the console window if it no longer exists.
+12. **ScriptCustomVars**: Allows you to define custom variables that get passed to your python functions.
 	- Default value: '' (blank, no custom variables provided)
 	- In this config value, you can set a list of key-value pairs which will each represent an assigned variable.
 		- Each key-value pair must be separated/delimited by the delimiter defined in the *ScriptCustomVarsDelim* config value.
@@ -285,10 +296,10 @@ Here is the list of currently supported config values for this extension.
 		- Then in your python functions, these variables can be accessed like a typical map
 			- Ex: *var_a = custom_vars["a"] # 'var_a' will be assigned value "11"*
 		- All keys and values will be treated as strings in the map.
-12. **ScriptCustomVarsDelim**: The separator/delimiter to use to distinguish each key-value pair listed in the "ScriptCustomVars" config value.
+13. **ScriptCustomVarsDelim**: The separator/delimiter to use to distinguish each key-value pair listed in the "ScriptCustomVars" config value.
 	- Default value: '||'
 	- If you changed this value to ';', then you would have to define the custom vars like so: '*key1=value1;key2=value2;key3=value3*'
-13. **CustomPythonPath**: Specifies a custom directory path for where python (*python.exe*) is located/installed.
+14. **CustomPythonPath**: Specifies a custom directory path for where python (*python.exe*) is located/installed.
 	- Default value: '' (blank value indicates to use system python path)
 	- By default, this extension uses whatever python path that is specified by your system's PATH variable.
 	- If you would like to use python from a different location (ex: portable version of python), then you can specify the directory path where python is located here.
@@ -321,6 +332,7 @@ SkipConsoleAndClipboard=1
 ReloadOnScriptModified=1
 PipPackageInstallMode=0
 PipRequirementsTxtPath=
+ShowLogConsole=0
 ScriptCustomVars=
 ScriptCustomVarsDelim=||
 CustomPythonPath=

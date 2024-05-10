@@ -31,10 +31,12 @@ class DefaultPythonProcess : public PythonProcess {
 public:
 	DefaultPythonProcess(ProcessManager& procManager, const Logger& logger, const WinEventHandler& eventHandler, 
 		const PythonInitCodeReserve& pyCodeReserve, PipPackageInstaller& packageInstaller,
-		const function<PipeManagerPtr(const string& pipeName, const size_t bufferSize)>& pipeGen)
+		const function<PipeManagerPtr(const string& pipeName, const size_t bufferSize)>& pipeGen,
+		const function<int()> showConsoleWindowGetter = []() { return 0; })
 		: _rootIdentifier(procManager.Identifier), _procManager(procManager), 
 			_logger(logger), _eventHandler(eventHandler), _pyCodeReserve(pyCodeReserve), 
-			_packageInstaller(packageInstaller), _pipeGen(pipeGen) { }
+			_packageInstaller(packageInstaller), _pipeGen(pipeGen),
+			_showConsoleWindowGetter(showConsoleWindowGetter) { }
 
 	virtual ~DefaultPythonProcess() {
 		if (isEnabled()) disableConnection();
@@ -162,6 +164,7 @@ private:
 	const PythonInitCodeReserve& _pyCodeReserve;
 	PipPackageInstaller& _packageInstaller;
 	const function<PipeManagerPtr(const string& pipeName, const size_t bufferSize)> _pipeGen;
+	const function<int()> _showConsoleWindowGetter;
 
 	unique_ptr<PythonManagerThread> _managerThread = nullptr;
 	PythonThreadMap _threadTracker = { };
@@ -188,7 +191,7 @@ private:
 
 	PythonInitCodeReserve::CmdPars createPyCmdPars(const size_t bufferSize) const {
 		auto cmdPars = PythonInitCodeReserve::CmdPars(
-			_rootIdentifier, bufferSize, _logger.getMinLogLevel());
+			_rootIdentifier, bufferSize, _showConsoleWindowGetter(), _logger.getMinLogLevel());
 
 		return cmdPars;
 	}

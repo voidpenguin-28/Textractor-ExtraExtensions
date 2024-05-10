@@ -12,6 +12,7 @@ const wstring SKIP_CONSOLE_AND_CLIPBOARD_KEY = L"SkipConsoleAndClipboard";
 const wstring RELOAD_ON_SCRIPT_MOD_KEY = L"ReloadOnScriptModified";
 const wstring PIP_PACKAGE_INSTALL_MODE_KEY = L"PipPackageInstallMode";
 const wstring PIP_REQUIREMENTS_TXT_PATH_KEY = L"PipRequirementsTxtPath";
+const wstring SHOW_LOG_CONSOLE_KEY = L"ShowLogConsole";
 const wstring SCRIPT_CUSTOM_VARS_KEY = L"ScriptCustomVars";
 const wstring SCRIPT_CUSTOM_VARS_DELIM_KEY = L"ScriptCustomVarsDelim";
 const wstring CUSTOM_PYTHON_PATH_KEY = L"CustomPythonPath";
@@ -35,6 +36,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	changed |= setValue(*ini, CUSTOM_PYTHON_PATH_KEY, config.customPythonPath, overrideIfExists);
 	changed |= setValue(*ini, SCRIPT_CUSTOM_VARS_DELIM_KEY, config.scriptCustomVarsDelim, overrideIfExists);
 	changed |= setValue(*ini, SCRIPT_CUSTOM_VARS_KEY, config.scriptCustomVars, overrideIfExists);
+	changed |= setValue(*ini, SHOW_LOG_CONSOLE_KEY, config.showLogConsole, overrideIfExists);
 	changed |= setValue(*ini, PIP_REQUIREMENTS_TXT_PATH_KEY, config.pipRequirementsTxtPath, overrideIfExists);
 	changed |= setValue(*ini, PIP_PACKAGE_INSTALL_MODE_KEY, config.pipPackageInstallMode, overrideIfExists);
 	changed |= setValue(*ini, RELOAD_ON_SCRIPT_MOD_KEY, config.reloadOnScriptModified, overrideIfExists);
@@ -66,6 +68,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, RELOAD_ON_SCRIPT_MOD_KEY, defaultConfig.reloadOnScriptModified),
 		getValOrDef(*ini, PIP_PACKAGE_INSTALL_MODE_KEY, defaultConfig.pipPackageInstallMode),
 		getValOrDef(*ini, PIP_REQUIREMENTS_TXT_PATH_KEY, defaultConfig.pipRequirementsTxtPath),
+		getValOrDef(*ini, SHOW_LOG_CONSOLE_KEY, defaultConfig.showLogConsole),
 		unenclose(getValOrDef(*ini, SCRIPT_CUSTOM_VARS_KEY, defaultConfig.scriptCustomVars), '"'),
 		getValOrDef(*ini, SCRIPT_CUSTOM_VARS_DELIM_KEY, defaultConfig.scriptCustomVarsDelim),
 		getValOrDef(*ini, CUSTOM_PYTHON_PATH_KEY, defaultConfig.customPythonPath)
