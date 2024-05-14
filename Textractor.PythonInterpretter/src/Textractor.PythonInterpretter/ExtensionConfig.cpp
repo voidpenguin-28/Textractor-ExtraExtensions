@@ -10,6 +10,7 @@ const wstring APPEND_ERR_MSG_KEY = L"AppendErrMsg";
 const wstring ACTIVE_THREAD_ONLY_KEY = L"ActiveThreadOnly";
 const wstring SKIP_CONSOLE_AND_CLIPBOARD_KEY = L"SkipConsoleAndClipboard";
 const wstring RELOAD_ON_SCRIPT_MOD_KEY = L"ReloadOnScriptModified";
+const wstring FORCE_SCRIPT_RELOAD_KEY = L"ForceScriptReload";
 const wstring PIP_PACKAGE_INSTALL_MODE_KEY = L"PipPackageInstallMode";
 const wstring PIP_REQUIREMENTS_TXT_PATH_KEY = L"PipRequirementsTxtPath";
 const wstring SHOW_LOG_CONSOLE_KEY = L"ShowLogConsole";
@@ -39,6 +40,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	changed |= setValue(*ini, SHOW_LOG_CONSOLE_KEY, config.showLogConsole, overrideIfExists);
 	changed |= setValue(*ini, PIP_REQUIREMENTS_TXT_PATH_KEY, config.pipRequirementsTxtPath, overrideIfExists);
 	changed |= setValue(*ini, PIP_PACKAGE_INSTALL_MODE_KEY, config.pipPackageInstallMode, overrideIfExists);
+	changed |= setValue(*ini, FORCE_SCRIPT_RELOAD_KEY, config.forceScriptReload, overrideIfExists);
 	changed |= setValue(*ini, RELOAD_ON_SCRIPT_MOD_KEY, config.reloadOnScriptModified, overrideIfExists);
 	changed |= setValue(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, config.skipConsoleAndClipboard, overrideIfExists);
 	changed |= setValue(*ini, ACTIVE_THREAD_ONLY_KEY, config.activeThreadOnly, overrideIfExists);
@@ -66,6 +68,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, defaultConfig.activeThreadOnly),
 		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, RELOAD_ON_SCRIPT_MOD_KEY, defaultConfig.reloadOnScriptModified),
+		getValOrDef(*ini, FORCE_SCRIPT_RELOAD_KEY, defaultConfig.forceScriptReload),
 		getValOrDef(*ini, PIP_PACKAGE_INSTALL_MODE_KEY, defaultConfig.pipPackageInstallMode),
 		getValOrDef(*ini, PIP_REQUIREMENTS_TXT_PATH_KEY, defaultConfig.pipRequirementsTxtPath),
 		getValOrDef(*ini, SHOW_LOG_CONSOLE_KEY, defaultConfig.showLogConsole),

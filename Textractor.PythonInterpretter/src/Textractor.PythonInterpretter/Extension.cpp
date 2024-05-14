@@ -205,6 +205,13 @@ bool ProcessSentenceBase(ScriptManager& scriptManager, wstring& sentence, Senten
 	if (config.scriptPath.empty()) return false;
 	if (!validScriptState(scriptManager)) return false;
 
+	if (config.forceScriptReload) {
+		loadScript(scriptManager, config, true,
+			"Attempting to reload python script due to 'ForceScriptReload' being enabled. Script: " + config.scriptPath,
+			"Python script reload successful. Script: " + config.scriptPath
+		);
+	}
+
 	sentence = scriptManager.processSentenceFromScript(sentence, sentInfoWrapper, config.appendErrMsg);
 	return true;
 }

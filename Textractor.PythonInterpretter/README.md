@@ -237,7 +237,10 @@ Here is the list of currently supported config values for this extension.
 	- Default value: '1' (reload if script file change detected).
 	- If set to '0', then the script will not be reloaded even if any changes to the current python script are found.
 	- If the log level is at least "Info", then you should get a popup message indicating that the script is being reloaded due to a script change.
-9. **PipPackageInstallMode**: Controls how the installation of python packages via pip should be handled.
+9. **ForceScriptReload**: As long as this is enabled (set to '1'), the script will be reloaded every single time a new line is processed by Textractor.
+	- Default value '0' (disabled; no forced reload will occur on each line)
+	- This is just an easy way to manually reload the script if needed.
+10. **PipPackageInstallMode**: Controls how the installation of python packages via pip should be handled.
 	- Default value: '0' (skip package if already installed).
 	- When a python script is loaded, this extension first installs python packages via pip for the following circumstances:
 		- To ensure that all depedencies needed for the extension's core functionality are installed
@@ -251,7 +254,7 @@ Here is the list of currently supported config values for this extension.
 		- If specified otherwise by the developer of the python script.
 		- If you are running into issues with the python script and suspect that the issue may be related to some of its dependencies.
 	- **Note that changes to this config value will only be recognized on Textractor restart or extension reload.**
-10. **PipRequirementsTxtPath**: Specifies a path to a 'requirements.txt' file to install necessary dependencies for a python script.
+11. **PipRequirementsTxtPath**: Specifies a path to a 'requirements.txt' file to install necessary dependencies for a python script.
 	- Default value: '' (blank, which means no requirements to install)
 	- These dependencies are installed via 'pip' (which generally comes packaged with python installations).
 	- These dependencies will be installed right before the python script is loaded.
@@ -269,7 +272,7 @@ Here is the list of currently supported config values for this extension.
 	- If you use backslashes in your path, **please double the backslashes**
 		- Ex: '*python-interpetter\\\\scripts\\\\JpToRomaji\\\\*' instead of '*python-interpetter\\scripts\\JpToRomaji\\*'
 	- For further information on the 'requirements.txt' file used by 'pip', such as how to define one, reference [pip's documentation on it](https://pip.pypa.io/en/stable/reference/requirements-file-format/).
-11. **ShowLogConsole**: If enabled (set to '1'), a console window will be shown which will display all python logging in real-time.
+12. **ShowLogConsole**: If enabled (set to '1'), a console window will be shown which will display all python logging in real-time.
 	- Default value: '0' (disabled, no log window shown)
 	- Note that this will only show python activity (the same data written to "[*Extension-Name*]-client-log.txt")
 		- In other words, data logged to "[*Extension-Name*]-extension-log.txt" and "[*Extension-Name*]-host-log.txt" will not be shown.
@@ -280,7 +283,7 @@ Here is the list of currently supported config values for this extension.
 			- To fix this, you would have to change the font used by the command line to a font that supports your desired unicode characters (ex: 'MS Gothic' for Japanese).
 			- You can change the command line font by: clicking the top-left corner of the window > Properties > Font tab > change the font > OK button.
 		- It is safe to close the console window at any point. This extension will simply stop trying to write to the console window if it no longer exists.
-12. **ScriptCustomVars**: Allows you to define custom variables that get passed to your python functions.
+13. **ScriptCustomVars**: Allows you to define custom variables that get passed to your python functions.
 	- Default value: '' (blank, no custom variables provided)
 	- In this config value, you can set a list of key-value pairs which will each represent an assigned variable.
 		- Each key-value pair must be separated/delimited by the delimiter defined in the *ScriptCustomVarsDelim* config value.
@@ -296,10 +299,10 @@ Here is the list of currently supported config values for this extension.
 		- Then in your python functions, these variables can be accessed like a typical map
 			- Ex: *var_a = custom_vars["a"] # 'var_a' will be assigned value "11"*
 		- All keys and values will be treated as strings in the map.
-13. **ScriptCustomVarsDelim**: The separator/delimiter to use to distinguish each key-value pair listed in the "ScriptCustomVars" config value.
+14. **ScriptCustomVarsDelim**: The separator/delimiter to use to distinguish each key-value pair listed in the "ScriptCustomVars" config value.
 	- Default value: '||'
 	- If you changed this value to ';', then you would have to define the custom vars like so: '*key1=value1;key2=value2;key3=value3*'
-14. **CustomPythonPath**: Specifies a custom directory path for where python (*python.exe*) is located/installed.
+15. **CustomPythonPath**: Specifies a custom directory path for where python (*python.exe*) is located/installed.
 	- Default value: '' (blank value indicates to use system python path)
 	- By default, this extension uses whatever python path that is specified by your system's PATH variable.
 	- If you would like to use python from a different location (ex: portable version of python), then you can specify the directory path where python is located here.
@@ -330,6 +333,7 @@ AppendErrMsg=1
 ActiveThreadOnly=0
 SkipConsoleAndClipboard=1
 ReloadOnScriptModified=1
+ForceScriptReload=0
 PipPackageInstallMode=0
 PipRequirementsTxtPath=
 ShowLogConsole=0

@@ -698,7 +698,7 @@ class LoggerWriter: #{
         logger.addHandler(f_hndl)
         
         if use_console_logger != 0: #{
-            c_hndl = ConsoleHandler('Testing')
+            c_hndl = ConsoleHandler(title=name)
             c_hndl.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
             logger.addHandler(c_hndl)
         #}
@@ -727,18 +727,18 @@ import {{1}} as ____
 
 if __name__ == '__main__': #{
     script_name = sys.argv[0]
+    root_name = sys.argv[1]
     use_log_console = int(sys.argv[3])
     log_level = int(sys.argv[4])
     log_path = sys.argv[5]
     
     ____.main_logger = ____.LoggerWriter.create_logger(
-        script_name, log_level, log_path, use_log_console
+        root_name, log_level, log_path, use_log_console
     )
     sys.stdout = ____.LoggerWriter(____.main_logger, logging.INFO)
     sys.stderr = ____.LoggerWriter(____.main_logger, logging.ERROR)
     ____.main_logger.info('***** Initialization script started: ' + script_name)
 
-    root_name = sys.argv[1]
     buffer_size = int(sys.argv[2])
     
     ____.___piper_manager = ____.CmdPiperManager(
