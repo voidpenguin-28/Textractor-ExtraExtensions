@@ -52,7 +52,7 @@ struct ExtensionConfig {
 
 static const ExtensionConfig DefaultConfig = ExtensionConfig(
 	false, "https://api.openai.com/v1/chat/completions", 
-	"", GPT_MODEL4_TURBO, 10, 2,
+	"", GPT_MODEL4_O, 10, 2,
 	L"Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines). However, only return the translation for the line that starts with '99:'.",
 	L"", true, 1, false, 3, 250, 300, true, true, true, ExtensionConfig::FilterMode::Disabled, L"", L"|", "", false
 );
