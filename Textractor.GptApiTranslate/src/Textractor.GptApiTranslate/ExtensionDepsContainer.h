@@ -33,8 +33,9 @@ public:
 			new CurlProcHttpClient([this]() { return _configRetriever->getConfig(false).customCurlPath; }));
 
 		_logger = unique_ptr<FileLogger>(new FileLogger(_logFileName));
-		_gptApiCaller = unique_ptr<DefaultGptApiCaller>(new DefaultGptApiCaller(*_httpClient, *_logger,
-			[this]() { return DefaultGptApiCaller::GptConfig(_configRetriever->getConfig(false)); }));
+		_apiMsgHelper = unique_ptr<DefaultApiMsgHelper>(new DefaultApiMsgHelper(*_configRetriever));
+		_gptApiCaller = unique_ptr<DefaultGptApiCaller>(
+			new DefaultGptApiCaller(*_httpClient, *_logger, *_apiMsgHelper));
 
 		_gptTranslator = unique_ptr<GptApiTranslator>(new GptApiTranslator(*_configRetriever, 
 			*_threadFilter, *_msgHistTracker, *_gptApiCaller, *_gptMsgHandler, *_formatter));
@@ -64,6 +65,7 @@ private:
 	unique_ptr<ThreadTracker> _threadTracker = nullptr;
 	unique_ptr<ThreadFilter> _threadFilter = nullptr;
 	unique_ptr<MultiThreadMsgHistoryTracker> _msgHistTracker = nullptr;
+	unique_ptr<ApiMsgHelper> _apiMsgHelper = nullptr;
 	unique_ptr<GptMsgHandler> _gptMsgHandler = nullptr;
 	unique_ptr<TranslationFormatter> _formatter = nullptr;
 	unique_ptr<HttpClient> _httpClient = nullptr;

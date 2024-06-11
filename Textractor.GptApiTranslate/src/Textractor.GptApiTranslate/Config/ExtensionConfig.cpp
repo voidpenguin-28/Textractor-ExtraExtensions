@@ -21,6 +21,10 @@ const wstring MSG_CHAR_LIMIT_KEY = L"MsgCharLimit";
 const wstring SKIP_ASCII_TEXT_KEY = L"SkipAsciiText";
 const wstring SKIP_IF_ZERO_WD_SPACE_KEY = L"SkipIfZeroWidthSpace";
 const wstring SHOW_ERR_MSG_KEY = L"ShowErrMsg";
+const wstring CUSTOM_REQUEST_TEMPLATE_KEY = L"CustomRequestTemplate";
+const wstring CUSTOM_RESPONSE_MSG_REGEX_KEY = L"CustomResponseMsgRegex";
+const wstring CUSTOM_ERROR_MSG_REGEX_KEY = L"CustomErrorMsgRegex";
+const wstring CUSTOM_HTTP_HEADERS_KEY = L"CustomHttpHeaders";
 const wstring THREAD_KEY_FILTER_MODE_KEY = L"ThreadKeyFilterMode";
 const wstring THREAD_KEY_FILTER_LIST_KEY = L"ThreadKeyFilterList";
 const wstring THREAD_KEY_FILTER_LIST_DELIM_KEY = L"ThreadKeyFilterListDelim";
@@ -48,6 +52,10 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	changed |= setValue(*ini, THREAD_KEY_FILTER_LIST_DELIM_KEY, config.threadKeyFilterListDelim, overrideIfExists);
 	changed |= setValue(*ini, THREAD_KEY_FILTER_LIST_KEY, config.threadKeyFilterList, overrideIfExists);
 	changed |= setValue(*ini, THREAD_KEY_FILTER_MODE_KEY, config.threadKeyFilterMode, overrideIfExists);
+	changed |= setValue(*ini, CUSTOM_HTTP_HEADERS_KEY, config.customHttpHeaders, overrideIfExists);
+	changed |= setValue(*ini, CUSTOM_ERROR_MSG_REGEX_KEY, config.customErrorMsgRegex, overrideIfExists);
+	changed |= setValue(*ini, CUSTOM_RESPONSE_MSG_REGEX_KEY, config.customResponseMsgRegex, overrideIfExists);
+	changed |= setValue(*ini, CUSTOM_REQUEST_TEMPLATE_KEY, config.customRequestTemplate, overrideIfExists);
 	changed |= setValue(*ini, SHOW_ERR_MSG_KEY, config.showErrMsg, overrideIfExists);
 	changed |= setValue(*ini, SKIP_IF_ZERO_WD_SPACE_KEY, config.skipIfZeroWidthSpace, overrideIfExists);
 	changed |= setValue(*ini, SKIP_ASCII_TEXT_KEY, config.skipAsciiText, overrideIfExists);
@@ -93,6 +101,10 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, SKIP_ASCII_TEXT_KEY, defaultConfig.skipAsciiText),
 		getValOrDef(*ini, SKIP_IF_ZERO_WD_SPACE_KEY, defaultConfig.skipIfZeroWidthSpace),
 		getValOrDef(*ini, SHOW_ERR_MSG_KEY, defaultConfig.showErrMsg),
+		getValOrDef(*ini, CUSTOM_REQUEST_TEMPLATE_KEY, defaultConfig.customRequestTemplate),
+		getValOrDef(*ini, CUSTOM_RESPONSE_MSG_REGEX_KEY, defaultConfig.customResponseMsgRegex),
+		getValOrDef(*ini, CUSTOM_ERROR_MSG_REGEX_KEY, defaultConfig.customErrorMsgRegex),
+		getValOrDef(*ini, CUSTOM_HTTP_HEADERS_KEY, defaultConfig.customHttpHeaders),
 		static_cast<FilterMode>(getValOrDef(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode)),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_KEY, defaultConfig.threadKeyFilterList),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_DELIM_KEY, defaultConfig.threadKeyFilterListDelim),

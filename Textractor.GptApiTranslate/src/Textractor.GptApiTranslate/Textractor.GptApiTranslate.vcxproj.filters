@@ -45,6 +45,9 @@
     <ClCompile Include="Network\GptApiCaller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Text\ApiMsgHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Extension.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtensionDepsContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text\ApiMsgHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

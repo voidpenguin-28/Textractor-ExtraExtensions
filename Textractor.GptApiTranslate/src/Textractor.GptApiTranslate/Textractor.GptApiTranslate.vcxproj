@@ -143,6 +143,7 @@
     <ClCompile Include="Extension.cpp" />
     <ClCompile Include="Config\ExtensionConfig.cpp" />
     <ClCompile Include="Network\GptApiCaller.cpp" />
+    <ClCompile Include="Text\ApiMsgHelper.cpp" />
     <ClCompile Include="Text\GptMsgHandle.cpp" />
     <ClCompile Include="Translator.cpp" />
     <ClCompile Include="History\MsgHistoryTrack.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="History\MultiThreadMsgHistoryTrack.h" />
     <ClInclude Include="Network\GptApiCaller.h" />
+    <ClInclude Include="Text\ApiMsgHelper.h" />
     <ClInclude Include="Text\GptMsgHandle.h" />
     <ClInclude Include="Translator.h" />
     <ClInclude Include="Network\HttpClient.h" />

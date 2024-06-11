@@ -20,6 +20,29 @@ public:
 		const function<bool(const string&)>& customRetryCondition = {}) const = 0;
 };
 
+class BasicStubHttpClient : public HttpClient {
+public:
+	BasicStubHttpClient(const string& getResponse, const string& postResponse)
+		: _getResponse(getResponse), _postResponse(postResponse) { }
+	BasicStubHttpClient(const string& response) : _getResponse(response), _postResponse(response) { }
+
+	string httpGet(const string& url, const vector<string>& headers = vector<string>(),
+		int connectTimeoutSecs = DEFAULT_CONNECT_TIMEOUT_SECS, int numRetries = DEFAULT_NUM_RETRIES,
+		const function<bool(const string&)>& customRetryCondition = {}) const
+	{
+		return _getResponse;
+	}
+
+	string httpPost(const string& url, const string& body, const vector<string>& headers = vector<string>(),
+		int connectTimeoutSecs = DEFAULT_CONNECT_TIMEOUT_SECS, int numRetries = DEFAULT_NUM_RETRIES,
+		const function<bool(const string&)>& customRetryCondition = {}) const
+	{
+		return _postResponse;
+	}
+private:
+	const string _getResponse;
+	const string _postResponse;
+};
 
 class CurlProcHttpClient : public HttpClient {
 public:

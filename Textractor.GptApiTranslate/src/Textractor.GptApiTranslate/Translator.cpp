@@ -112,7 +112,7 @@ string GptApiTranslator::createGptUserMsg(
 	wstring userMsg = config.userMsgPrefix + L"\n";
 	userMsg += _gptMsgHandler.createMsgFromHistory(msgHist, config.msgCharLimit, config.historySoftCharLimit);
 
-	return StrHelper::convertFromW(StrHelper::rtrim(userMsg, L"\n"));
+	return StrHelper::convertFromW(StrHelper::rtrim<wchar_t>(userMsg, L"\n"));
 }
 
 wstring GptApiTranslator::callGptApi(ExtensionConfig& config, const string& sysMsg, const string& userMsg) const {
@@ -120,7 +120,7 @@ wstring GptApiTranslator::callGptApi(ExtensionConfig& config, const string& sysM
 	bool error = output.first;
 
 	string translation = output.second;
-	if (error) translation = config.showErrMsg ? "*** GPT API ERROR:\n" + translation : "";
+	if (error) translation = config.showErrMsg ? "*** API ERROR:\n" + translation : "";
 
 	return StrHelper::convertToW(translation);
 }

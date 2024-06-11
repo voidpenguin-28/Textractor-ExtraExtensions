@@ -13,11 +13,12 @@ This extention is highly configurable, allowing you to control features such as:
 4. Filtering which text hooks/threads to run translations for.
 5. Configurable timeout & retry logic for API network requests.
 6. Logging GPT API requests for tracing/debugging purposes.
+7. The capability to [use another API/endpoint](how-to-integrate-custom-api-endpoints) similar to GPT (such as Google's Gemini), as of v1.2.
 
 
 **Note that using the GPT API requires an API key, which much be retrieved from your OpenAI account. OpenAI does charge money for requests to their API.**
 
-**Based on initial testing, using the extension's default configuration, you can expect GPT API costs to range from about $0.75-$2.00 per hour of reading.** *The exact numbers will vary based on several factors such as: model used, reading speed, text density per line, API response times, number of actively translated text hooks, and other extension settings (ex: message history count).*
+**Based on initial testing, using the extension's default configuration, you can expect GPT API costs to range from about $0.75-$2.00 per hour of reading.** *The exact numbers will vary based on several factors such as: model used, reading speed, text density per line, API response times, number of actively translated text hooks, and other extension settings (ex: message history count).* As of mid-2024, using the gpt4-o model would half the estimated cost of the above prediction.
 
 Also note that the GPT API can take a while to return a response compared to other translation services. It is not unexpected for API response times to take anywhere from 0.5 seconds to several seconds.
 
@@ -93,7 +94,7 @@ Note that many of these recommendations will result in an increase in cost or lo
 
 1. Adjust the model being used ("**Model**" config value)
 	- Some GPT models perform better than others. For example, GPT4 will generally perform better than GPT3.5-Turbo.
-	- The default model used by this extension is GPT4-Turbo.
+	- The default model used by this extension is GPT4-O.
 	- You may potentially get better results using GPT4 instead of GPT4-Turbo. However, I have not personally tested this myself so I cannot say so with certainty. Also note that GPT4 costs more than GPT4-Turbo.
 	- Depending on when in the future you are using this extension, perhaps a newer and better GPT model may exist at that point in time; therefore, you may want to try using whatever is considered the best model at that point in time.
 2. Increase the "**MsgHistoryCount**" config value to a higher number.
@@ -129,6 +130,28 @@ These tips generally involve doing the opposite of the tips for improving transl
 5. Ensure the "**ActiveThreadOnly**" config value is set to '1', so that only the active thread/hook is translated.
 
 
+### How to Integrate Custom API Endpoints
+
+As of v1.2, this extension's configuration allows you to integrate other API endpoints if desired. Here are some basic instructions on how to do so.
+
+1. Set the **Url, ApiKey, Model** config values to your desired API endpoint.
+2. Leverage the **CustomRequestTemplate, CustomResponseMsgRegex, CustomErrorMsgRegex, CustomHttpHeaders** config values to integrate the necessary functionality to send API requests and parse API responses.
+	- Reference the [Config Values](config-values) section for more details on these config values.
+
+Here are some example integrations
+1. **[Google Gemini API](https://ai.google.dev/)**
+	- Set the following config values in your ini config.
+		```ini
+		Url=https://generativelanguage.googleapis.com/v1beta/models/{1}:generateContent?key={0}
+		ApiKey=***GEMINI API KEY HERE***
+		Model=***DESIRED GEMINI MODEL HERE (ex: gemini-1.5-flash)***
+		CustomRequestTemplate={"systemInstruction":{"role":"user","parts":[{"text":"{1}"}]},"contents":[{"role":"user","parts":[{"text":"{2}"}]}],"safetySettings":[{"category":"HARM_CATEGORY_SEXUALLY_EXPLICIT","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_HATE_SPEECH","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_HARASSMENT","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_DANGEROUS_CONTENT","threshold":"BLOCK_NONE"}]}
+		CustomResponseMsgRegex="[Tt]ext":\\s{0,}"((?:\\\\"|[^"])*)"
+		CustomErrorMsgRegex=
+		CustomHttpHeaders=Content-Type: application/json
+		```
+	- You may want/need to adjust the existing url in the future when changes to the API are made.
+		- For example, the current url references the 'v1beta' model version, but in the future you may want to adjust this to a newer version as they become available.
 ## Config Values
 Here is the list of currently supported config values for this extension.
 
@@ -138,6 +161,13 @@ Here is the list of currently supported config values for this extension.
 	- Default value: 'https://api.openai.com/v1/chat/completions'
 	- **Under normal cirumstances, this value should NOT be modified, or it could result in broken or unexpected behavior.**
 		- This config value exists in case a future issue/cirumstance presents itself if OpenAPI ever changed how it structures its API url/path.
+	- As of v1.2, this config value also supports templated parameters.
+		- This can be useful if you are using a custom API endpoint, or if the existing GPT endpoint somehow changes structure in the future.
+		- Supported parameters:
+			- {0}: ApiKey
+			- {1}: Model
+		- Example: https://generativelanguage.googleapis.com/v1beta/models/{1}:generateContent?key={0}
+			- The extension will fill in {1} with the Model config value and {0} with the ApiKey config value.
 3. **ApiKey**: An OpenAI API key used to authenticate with the GPT Completions API.
 	- Default value: '' (none)
 	- **This value must be set before this extension can be used, as it is required for making GPT API requests.**
@@ -145,6 +175,7 @@ Here is the list of currently supported config values for this extension.
 		- You can log into your OpenAI account here: https://platform.openai.com/login?launch
 	- If you do not have an OpenAI account, you can register here: https://platform.openai.com/signup
 	- If you need further assistance on how to retrieve your API key, reference this guide: https://www.howtogeek.com/885918/how-to-get-an-openai-api-key/
+	- If you are using a custom endpoint/API (ex: Gemini), you would still provide the API key here.
 4. **Model**: The GPT model to use for API requests.
 	- Default value: 'gpt-4-1106-preview' (GPT-4-Turbo model)
 	- This value should be the model value that normally gets passed into the GPT API.
@@ -156,6 +187,7 @@ Here is the list of currently supported config values for this extension.
 	- Also keep in mind that different models have different pricing and general response times.
 		- GPT 3.5 models will be much cheaper and perform faster than GPT 4 models; however, the tradeoff is reduced translation quality/accuracy.
 		- API pricing details per model can be found here: https://openai.com/pricing
+	- If you are using a custom endpoint/API (ex: Gemini), you would still provide the model to use here.
 5. **TimeoutSecs**: The amount of time in seconds that the extension will wait for a GPT API request to complete before cancelling the request.
 	- Default value: '10' (10 seconds)
 	- If the timeout is reached, then the request will be retried a number of times, based on the value of config key **NumRetries**
@@ -323,13 +355,63 @@ Here is the list of currently supported config values for this extension.
 		- Therefore, the request will simply fail in the background.
 		- In these cases, only the Japanese line will be returned, no English line.
 		- Without any printed error messages, the only way you would be able to get insight into what went wrong would be to set the **DebugMode** config value to '1', and then take a look at the debug log.
-18. **ThreadKeyFilterMode**: Indicates the filter mode used by the config key "ThreadKeyFilterList"
+18. **CustomRequestTemplate**: Allows you to provide your own request data structure to send to the API endpoint.
+	- Default value: '' (blank)
+	- Any value you provide here will override the extension's default request template. If this value is blank, then the default request template will be used.
+	- In most cases, setting this value won't be necessary. However, this can be useful in the following scenarios:
+		- To integrate a different API similar to GPT (ex: Gemini)
+		- In case the existing request template breaks due to a change to the GPT API in the future.
+	- This config value supports the following templated parameters:
+		- {0}: Model
+		- {1}: System Role Message
+		- {2}: User Role Message
+		- {3}: ApiKey
+	- Example (Gemini API): 
+		```json
+		{"systemInstruction":{"role":"user","parts":[{"text":"{1}"}]},"contents":[{"role":"user","parts":[{"text":"{2}"}]}]}
+		```
+		- The extension would fill in {1} with the system role message and {2} with the user role message.
+19. **CustomResponseMsgRegex**: Allows you to provide your own custom regex parsing logic to extract the output text from the API response.
+	- Default value: '' (blank)
+	- Any value you provide here will override the extension's response parsing logic. If this value is blank, then the default response parsing will be used.
+	- In most cases, setting this value won't be necessary. The reasons for wanting to use this are the same as the *CustomRequestTemplate* config value.
+	- The following conditions must be met for this value to work correctly
+		- The string must be a valid regex
+			- Note: any '\' characters should be doubled (ex: '\s' should be '\\s')
+		- The regex must contain one capture group. The capture group should contain the output text.
+			- Your capture group should NOT contain the enclosing quotes for the output text, only the output text itself.
+	- Example:
+		```ini
+		CustomRequestTemplate="[Tt]ext":\\s{0,}"((?:\\\\"|[^"])*)"
+		```
+		- API Response: *{"candidates":[{"content":{"parts":[{"text":"99: \\"You're so mean!\\""}],"role":"model"}}]}*
+		- Parsed Output: *99: "You're so mean!"*
+20. **CustomErrorMsgRegex**: Allows you to provide your own custom regex parsing logic to extract error output text from the API response.
+	- Default value: '' (blank)
+	- Any value you provide here will override the extension's error parsing logic. If this value is blank, then the default error parsing will be used.
+	- This is almost identical to the *CustomResponseMsgRegex* config value. However, many APIs such as GPT return a different JSON response structure when an error occurs, hence why distinct error parsing logic is used.
+21. **CustomHttpHeaders**:  Allows you to provide your own HTTP headers to send in the API request.
+	- Default value: '' (blank)
+	- If you provide a value, then the extension will only use the headers you provide (none of the ones it would use by default). If this value is blank, then the default headers will be used.
+	- Each header should be a key-value pair, where the key is the header name and the value is the header value.
+		- A ':' delimiter should be used to pair a key to a value.
+		- A '|' delimiter should be used to separate each key-value pair.
+		- Spaces are acceptable between delimiters, as they will be trimmed out.
+	- This config value supports the following templated parameters:
+		- {0}: ApiKey
+		- {1}: Model
+	- Example:
+		```ini
+		CustomHttpHeaders=Content-Type: application/json | Authorization: Bearer {0}
+		```
+		- The extension will fill in {0} with the ApiKey.
+22. **ThreadKeyFilterMode**: Indicates the filter mode used by the config key "ThreadKeyFilterList"
 	- Default value: '0' (disabled)
 	- Supported Filter Modes:
 		- **0**: Disabled. No filtering will occur, regardless if the "ThreadKeyFilterList" config value is set.
 		- **1**: Blacklist mode. Any thread names or thread keys specified in the ThreadKeyFilterList will be excluded from making GPT requests.
 		- **2**: Whitelist mode. Only thread names or thread keys specified in the ThreadKeyFilterList will be making GPT requests.
-19. **ThreadKeyFilterList**: A list of thread names or thread keys to filter by.
+23. **ThreadKeyFilterList**: A list of thread names or thread keys to filter by.
 	- For info on what a "ThreadKey" is, reference the following Notes section:
 		- https://github.com/voidpenguin-28/Textractor-ExtraExtensions/tree/main/Textractor.TextLogger#notes
 	- Note that filtering related config values are usually only relevant when config key **ActiveThreadOnly** is set to '0'.
@@ -338,10 +420,10 @@ Here is the list of currently supported config values for this extension.
 		- In other words, if thread name "GetGlyphOutlineA" is included in the list, then all thread keys that full under that thread name would be automatically included.
 	- Each thread name/key must be separated by the separator/delimiter specified in the "ThreadKeyFilterListDelim" config value.
 		-Ex: If "ThreadKeyFilterListDelim" is set to '|', then the 3 threads can be added to the filter list like so: '*GetGlyphOutlineA-1|GetCharABCWidthsA|GetGlyphOutlineA-2*'
-20. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
+24. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
 	- Default value: '|'
 	- If you changed this value to ';', then you would have to define the filter list like so: '*GetGlyphOutlineA-1;GetCharABCWidthsA;GetGlyphOutlineA-2*'
-21. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
+25. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
 	- Default value: '' (blank value indicates to use system curl path)
 	- As previously stated, curl is necessary for this extension to perform network requests.
 	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
@@ -357,7 +439,7 @@ Here is the list of currently supported config values for this extension.
 			CustomCurlPath=C:\\curl-win\\
 			;;...omitted...
 			```
-22. **DebugMode**: Allows you to log GPT request and response data to a log file.
+26. **DebugMode**: Allows you to log GPT request and response data to a log file.
 	- Default value: '0' (do not log any data to file)
 	- Request/response data will be logged to file if this config value is set to '1'.
 	- The log file will be called "gpt-request-log.txt" and will be located in the root directory of Textractor.
@@ -430,6 +512,10 @@ MsgCharLimit=300
 SkipAsciiText=1
 SkipIfZeroWidthSpace=1
 ShowErrMsg=1
+CustomRequestTemplate=
+CustomResponseMsgRegex=
+CustomErrorMsgRegex=
+CustomHttpHeaders=
 ThreadKeyFilterMode=0
 ThreadKeyFilterList=
 ThreadKeyFilterListDelim=|

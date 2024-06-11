@@ -3,7 +3,8 @@
 #include "../_Libraries/strhelper.h"
 
 const vector<wstring> DefaultGptMsgHandler::LINE_SEPS = { L": ", L". " };
-const wregex DefaultGptMsgHandler::_transltSplitPattern(L"(?:^|\n)\\d+(?:" + StrHelper::join(L"|", LINE_SEPS) + L")");
+const wregex DefaultGptMsgHandler::_transltSplitPattern(
+	L"(?:^|\n)\\d+(?:" + StrHelper::join<wchar_t>(L"|", LINE_SEPS) + L")");
 
 
 // *** PUBLIC
@@ -28,7 +29,7 @@ wstring DefaultGptMsgHandler::createMsgFromHistory(
 		finalMsg = to_wstring(msgPrefix) + LINE_SEPS[0] + currMsg + L"\n" + finalMsg;
 	}
 
-	return StrHelper::rtrim(finalMsg, L"\n");
+	return StrHelper::rtrim<wchar_t>(finalMsg, L"\n");
 }
 
 wstring DefaultGptMsgHandler::getLastTranslationFromResponse(const wstring& responseMsg) const {
