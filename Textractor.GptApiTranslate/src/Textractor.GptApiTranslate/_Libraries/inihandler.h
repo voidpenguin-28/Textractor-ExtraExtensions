@@ -7,6 +7,7 @@
 #include <mutex>
 #include <regex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 using namespace std;
 
@@ -54,7 +55,7 @@ public:
 	bool removeSection(const wstring& section);
 private:
 	static const IniParser _iniParser;
-	static const vector<pair<wregex, wstring>> _formatPairs;
+	static const unordered_map<wchar_t, wchar_t> _escapePairs;
 	static const vector<pair<wstring, wstring>> _formatPairs2;
 
 	vector<wstring> _iniLines;
@@ -72,6 +73,7 @@ private:
 
 	bool indexValid(size_t index) const;
 	wstring formatReadKeyValue(wstring value) const;
+	void replaceAndRemoveCh(wstring& value, size_t startIndex, wchar_t replaceCh) const;
 	wstring formatWriteKeyValue(wstring value) const;
 	void addNewKeyValue(const wstring& section, const wstring& key, const wstring& value);
 	void updateKeyValue(size_t keyIndex, const wstring& value);

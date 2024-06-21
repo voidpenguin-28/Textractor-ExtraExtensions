@@ -145,11 +145,12 @@ bool IniContents::removeSection(const wstring& section) {
 
 const IniParser IniContents::_iniParser{};
 
-const vector<pair<wregex, wstring>> IniContents::_formatPairs = {
-	pair<wregex, wstring>(wregex(L"(^|[^\\\\])(\\\\r)"), L"\r"),
-	pair<wregex, wstring>(wregex(L"(^|[^\\\\])(\\\\n)"), L"\n"),
-	pair<wregex, wstring>(wregex(L"(^|[^\\\\])(\\\\t)"), L"\t"),
-	pair<wregex, wstring>(wregex(L"(^|.)(\\\\\\\\)"), L"\\")
+const unordered_map<wchar_t, wchar_t> IniContents::_escapePairs = {
+	{ L'\\', L'\\' },
+	{ L'r', L'\r' },
+	{ L'n', L'\n' },
+	{ L't', L'\t' },
+	{ L'"', L'"' },
 };
 
 const vector<pair<wstring, wstring>> IniContents::_formatPairs2 = {
@@ -249,11 +250,24 @@ bool IniContents::indexValid(size_t index) const {
 }
 
 wstring IniContents::formatReadKeyValue(wstring value) const {
-	for (auto& format : _formatPairs) {
-		value = regex_replace(value, format.first, L"$1" + format.second);
+	static constexpr wchar_t escapeCh = L'\\';
+	if (value.empty()) return value;
+	wchar_t nextCh;
+
+	for (size_t i = 0; i < value.size() - 1; i++) {
+		if (value[i] != escapeCh) continue;
+		nextCh = value[i + 1];
+
+		if (_escapePairs.find(nextCh) != _escapePairs.end())
+			replaceAndRemoveCh(value, i, _escapePairs.at(nextCh));
 	}
 
 	return value;
+}
+
+void IniContents::replaceAndRemoveCh(wstring& value, size_t startIndex, wchar_t replaceCh) const {
+	value.erase(startIndex + 1, 1);
+	value[startIndex] = replaceCh;
 }
 
 wstring IniContents::formatWriteKeyValue(wstring value) const {

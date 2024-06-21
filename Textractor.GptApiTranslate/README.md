@@ -145,8 +145,8 @@ Here are some example integrations
 		Url=https://generativelanguage.googleapis.com/v1beta/models/{1}:generateContent?key={0}
 		ApiKey=***GEMINI API KEY HERE***
 		Model=***DESIRED GEMINI MODEL HERE (ex: gemini-1.5-flash)***
-		CustomRequestTemplate={"systemInstruction":{"role":"user","parts":[{"text":"{1}"}]},"contents":[{"role":"user","parts":[{"text":"{2}"}]}],"safetySettings":[{"category":"HARM_CATEGORY_SEXUALLY_EXPLICIT","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_HATE_SPEECH","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_HARASSMENT","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_DANGEROUS_CONTENT","threshold":"BLOCK_NONE"}]}
-		CustomResponseMsgRegex="[Tt]ext":\\s{0,}"((?:\\\\"|[^"])*)"
+		CustomRequestTemplate={\"systemInstruction\":{\"role\":\"user\", \"parts\":[{\"text\":\"{1}\"}]}, \"contents\":[{\"role\":\"user\", \"parts\":[{\"text\":\"{2}\"}]}], \"safetySettings\":[{\"category\":\"HARM_CATEGORY_SEXUALLY_EXPLICIT\", \"threshold\":\"BLOCK_NONE\"}, {\"category\":\"HARM_CATEGORY_HATE_SPEECH\", \"threshold\":\"BLOCK_NONE\"}, {\"category\":\"HARM_CATEGORY_HARASSMENT\", \"threshold\":\"BLOCK_NONE\"}, {\"category\":\"HARM_CATEGORY_DANGEROUS_CONTENT\", \"threshold\":\"BLOCK_NONE\"}]}
+		CustomResponseMsgRegex=\"[Tt]ext\":\\s{0,}\"((?:\\\\\"|[^\"])*)\"
 		CustomErrorMsgRegex=
 		CustomHttpHeaders=Content-Type: application/json
 		```
@@ -358,6 +358,16 @@ Here is the list of currently supported config values for this extension.
 18. **CustomRequestTemplate**: Allows you to provide your own request data structure to send to the API endpoint.
 	- Default value: '' (blank)
 	- Any value you provide here will override the extension's default request template. If this value is blank, then the default request template will be used.
+	- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**
+		- Unfortunately, this is necessary due to Textractor's ini formatting logic, which is outside the extension's control. Non-escaped double quotation marks will get scrubbed by Textractor when the app is opened or closed.
+		- Ex:
+		```
+		vvv WRONG vvv
+		CustomRequestTemplate={"asdf": "1234"}
+		
+		vvv CORRECT vvv
+		CustomRequestTemplate={\"asdf\": \"1234\"}
+		```
 	- In most cases, setting this value won't be necessary. However, this can be useful in the following scenarios:
 		- To integrate a different API similar to GPT (ex: Gemini)
 		- In case the existing request template breaks due to a change to the GPT API in the future.
@@ -367,8 +377,8 @@ Here is the list of currently supported config values for this extension.
 		- {2}: User Role Message
 		- {3}: ApiKey
 	- Example (Gemini API): 
-		```json
-		{"systemInstruction":{"role":"user","parts":[{"text":"{1}"}]},"contents":[{"role":"user","parts":[{"text":"{2}"}]}]}
+		```
+		{\"systemInstruction\":{\"role\":\"user\",\"parts\":[{\"text\":\"{1}\"}]},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"{2}\"}]}]}
 		```
 		- The extension would fill in {1} with the system role message and {2} with the user role message.
 19. **CustomResponseMsgRegex**: Allows you to provide your own custom regex parsing logic to extract the output text from the API response.
@@ -380,6 +390,16 @@ Here is the list of currently supported config values for this extension.
 			- Note: any '\' characters should be doubled (ex: '\s' should be '\\s')
 		- The regex must contain one capture group. The capture group should contain the output text.
 			- Your capture group should NOT contain the enclosing quotes for the output text, only the output text itself.
+		- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**
+			- Unfortunately, this is necessary due to Textractor's ini formatting logic, which is outside the extension's control. Non-escaped double quotation marks will get scrubbed by Textractor when the app is opened or closed.
+			- Ex:
+			```
+			vvv WRONG vvv
+			CustomResponseMsgRegex="[Tt]ext":\\s{0,}"((?:\\\\"|[^"])*)"
+			
+			vvv CORRECT vvv
+			CustomResponseMsgRegex=\"[Tt]ext\":\\s{0,}\"((?:\\\\\"|[^\"])*)\"
+			```
 	- Example:
 		```ini
 		CustomRequestTemplate="[Tt]ext":\\s{0,}"((?:\\\\"|[^"])*)"

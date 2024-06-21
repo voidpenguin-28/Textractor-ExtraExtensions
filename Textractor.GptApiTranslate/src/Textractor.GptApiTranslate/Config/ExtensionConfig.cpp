@@ -1,6 +1,7 @@
 
 #include "ExtensionConfig.h"
 #include "../_Libraries/strhelper.h"
+#include <regex>
 using FilterMode = ExtensionConfig::FilterMode;
 
 
@@ -102,8 +103,8 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, SKIP_IF_ZERO_WD_SPACE_KEY, defaultConfig.skipIfZeroWidthSpace),
 		getValOrDef(*ini, SHOW_ERR_MSG_KEY, defaultConfig.showErrMsg),
 		getValOrDef(*ini, CUSTOM_REQUEST_TEMPLATE_KEY, defaultConfig.customRequestTemplate),
-		getValOrDef(*ini, CUSTOM_RESPONSE_MSG_REGEX_KEY, defaultConfig.customResponseMsgRegex),
-		getValOrDef(*ini, CUSTOM_ERROR_MSG_REGEX_KEY, defaultConfig.customErrorMsgRegex),
+		regexFormat(getValOrDef(*ini, CUSTOM_RESPONSE_MSG_REGEX_KEY, defaultConfig.customResponseMsgRegex)),
+		regexFormat(getValOrDef(*ini, CUSTOM_ERROR_MSG_REGEX_KEY, defaultConfig.customErrorMsgRegex)),
 		getValOrDef(*ini, CUSTOM_HTTP_HEADERS_KEY, defaultConfig.customHttpHeaders),
 		static_cast<FilterMode>(getValOrDef(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode)),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_KEY, defaultConfig.threadKeyFilterList),
@@ -151,4 +152,11 @@ string IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, str
 
 int IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
 	return ini.getValue(_iniSectionName, key, defaultValue);
+}
+
+string IniConfigRetriever::regexFormat(string pattern) const {
+	static const regex curlyBracketsPattern("\\{(\\d+), \\}");
+	if (pattern.empty()) return pattern;
+	pattern = regex_replace(pattern, curlyBracketsPattern, "{$1,}");
+	return pattern;
 }

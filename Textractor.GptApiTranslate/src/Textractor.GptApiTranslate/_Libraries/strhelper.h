@@ -76,7 +76,7 @@ public:
 		vector<string_base<charT>> splits{};
 		string_base<charT> subStr;
 
-		for (char ch : str) {
+		for (charT ch : str) {
 			if (ch == delim) {
 				if (trimWs) subStr = trim<charT>(subStr, _space);
 				splits.push_back(subStr);

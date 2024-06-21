@@ -111,4 +111,5 @@ private:
 	wstring getValOrDef(IniContents& ini, const wstring& key, wstring defaultValue) const;
 	string getValOrDef(IniContents& ini, const wstring& key, string defaultValue) const;
 	int getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const;
+	string regexFormat(string pattern) const;
 };
