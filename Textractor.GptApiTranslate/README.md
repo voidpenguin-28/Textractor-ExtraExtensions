@@ -13,7 +13,7 @@ This extention is highly configurable, allowing you to control features such as:
 4. Filtering which text hooks/threads to run translations for.
 5. Configurable timeout & retry logic for API network requests.
 6. Logging GPT API requests for tracing/debugging purposes.
-7. The capability to [use another API/endpoint](how-to-integrate-custom-api-endpoints) similar to GPT (such as Google's Gemini), as of v1.2.
+7. The capability to [use another API/endpoint](#how-to-integrate-custom-api-endpoints) similar to GPT (such as Google's Gemini), as of v1.2.
 
 
 **Note that using the GPT API requires an API key, which much be retrieved from your OpenAI account. OpenAI does charge money for requests to their API.**
@@ -358,7 +358,7 @@ Here is the list of currently supported config values for this extension.
 18. **CustomRequestTemplate**: Allows you to provide your own request data structure to send to the API endpoint.
 	- Default value: '' (blank)
 	- Any value you provide here will override the extension's default request template. If this value is blank, then the default request template will be used.
-	- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**
+	- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**)
 		- Unfortunately, this is necessary due to Textractor's ini formatting logic, which is outside the extension's control. Non-escaped double quotation marks will get scrubbed by Textractor when the app is opened or closed.
 		- Ex:
 		```
@@ -390,7 +390,7 @@ Here is the list of currently supported config values for this extension.
 			- Note: any '\' characters should be doubled (ex: '\s' should be '\\s')
 		- The regex must contain one capture group. The capture group should contain the output text.
 			- Your capture group should NOT contain the enclosing quotes for the output text, only the output text itself.
-		- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**
+		- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**)
 			- Unfortunately, this is necessary due to Textractor's ini formatting logic, which is outside the extension's control. Non-escaped double quotation marks will get scrubbed by Textractor when the app is opened or closed.
 			- Ex:
 			```
@@ -402,7 +402,7 @@ Here is the list of currently supported config values for this extension.
 			```
 	- Example:
 		```ini
-		CustomRequestTemplate="[Tt]ext":\\s{0,}"((?:\\\\"|[^"])*)"
+		CustomResponseMsgRegex=\"[Tt]ext\":\\s{0,}\"((?:\\\\\"|[^\"])*)\"
 		```
 		- API Response: *{"candidates":[{"content":{"parts":[{"text":"99: \\"You're so mean!\\""}],"role":"model"}}]}*
 		- Parsed Output: *99: "You're so mean!"*
