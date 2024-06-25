@@ -154,11 +154,14 @@
     <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="HtmlParser.h" />
     <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="GenderStrMapper.h" />
+    <ClInclude Include="VnIdsParser.h" />
+    <ClInclude Include="ProcessNameRetriever.h" />
+    <ClInclude Include="Libraries\strhelper.h" />
     <ClInclude Include="Libraries\winmsg.h" />
     <ClInclude Include="NameMapper.h" />
     <ClInclude Include="Libraries\curlproc.h" />
     <ClInclude Include="Libraries\inihandler.h" />
-    <ClInclude Include="Libraries\stringconvert.h" />
     <ClInclude Include="NameMappingManager.h" />
     <ClInclude Include="NameRetriever.h" />
   </ItemGroup>

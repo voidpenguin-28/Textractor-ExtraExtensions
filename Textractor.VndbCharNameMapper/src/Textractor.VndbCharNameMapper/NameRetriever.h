@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Libraries/inihandler.h"
-#include "Libraries/stringconvert.h"
+#include "Libraries/strhelper.h"
+#include "GenderStrMapper.h"
 #include "HtmlParser.h"
 #include "HttpClient.h"
 #include "ExtensionConfig.h"
@@ -13,14 +14,14 @@ using namespace std;
 class NameRetriever {
 public:
 	virtual ~NameRetriever() { }
-	virtual wstring_map_pair getNameMappings(const string& vnId) = 0;
+	virtual CharMappings getNameMappings(const string& vnId) = 0;
 };
 
 
 class NoNameRetriever : public NameRetriever {
 public:
-	wstring_map_pair getNameMappings(const string& vnId) override {
-		return wstring_map_pair();
+	CharMappings getNameMappings(const string& vnId) override {
+		return CharMappings();
 	}
 };
 
@@ -35,12 +36,12 @@ public:
 		const HttpClient& httpClient, const HtmlParser& htmlParser)
 		: VndbHttpNameRetriever([urlTemplate]() { return urlTemplate; }, httpClient, htmlParser) { }
 
-	wstring_map_pair getNameMappings(const string& vnId) override {
-		if (vnId.empty()) return wstring_map_pair();
+	CharMappings getNameMappings(const string& vnId) override {
+		if (vnId.empty()) return CharMappings();
 		string url = createUrl(vnId);
 		string html = getAllCharsHtmlPage(url);
 
-		wstring_map_pair nameMap = _htmlParser.getNameMappings(html);
+		CharMappings nameMap = _htmlParser.getNameMappings(html);
 		return nameMap;
 	}
 private:
@@ -50,13 +51,13 @@ private:
 	const HtmlParser& _htmlParser;
 
 	string createUrl(string vnId) const {
+		static const string errMsg = "UrlTemplate config value is invalid. Must contain '{0}' value to indicate expected location of vn_id (ex: https://vndb.org/{0}/chars). Value: ";
 		static const string tmplPar = "{0}";
 		if (vnId[0] != 'v') vnId = 'v' + vnId;
 
 		string urlTemplate = _urlTemplateGetter();
 		size_t tmplIndex = urlTemplate.find(tmplPar);
-		if (tmplIndex == string::npos)
-			runtime_error("UrlTemplate config value is invalid. Must contain '{0}' value to indicate expected location of vn_id (ex: https://vndb.org/{0}/chars). Value: " + urlTemplate);
+		if (tmplIndex == string::npos) runtime_error(errMsg + urlTemplate);
 
 		return urlTemplate.replace(tmplIndex, tmplPar.length(), vnId);
 	}
@@ -75,15 +76,15 @@ public:
 	CacheNameRetriever(NameRetriever& mainRetriever, const function<bool()> reloadCacheGetter) 
 		: _mainRetriever(mainRetriever), _reloadCacheGetter(reloadCacheGetter) { }
 
-	wstring_map_pair getNameMappings(const string& vnId) override {
-		if (vnId.empty()) return wstring_map_pair();
+	CharMappings getNameMappings(const string& vnId) override {
+		if (vnId.empty()) return CharMappings();
 		lock_guard<mutex> lock(_mutex);
 		bool reloadCache = _reloadCacheGetter();
-		wstring_map_pair map;
+		CharMappings map;
 
 		if (!reloadCache) {
 			map = getMapFromCache(vnId);
-			if (!map.first.empty()) return map;
+			if (!map.fullNameMap.empty()) return map;
 		}
 
 		map = _mainRetriever.getNameMappings(vnId);
@@ -95,8 +96,8 @@ protected:
 	const function<bool()> _reloadCacheGetter;
 	mutable mutex _mutex;
 
-	virtual wstring_map_pair getMapFromCache(const string& vnId) const = 0;
-	virtual void saveMapToCache(const string& vnId, const wstring_map_pair& map) = 0;
+	virtual CharMappings getMapFromCache(const string& vnId) const = 0;
+	virtual void saveMapToCache(const string& vnId, const CharMappings& map) = 0;
 };
 
 
@@ -106,44 +107,63 @@ public:
 		const function<bool()> reloadCacheGetter) : CacheNameRetriever(mainNameRetriever, reloadCacheGetter), 
 			_iniFileName(iniFileName), _iniHandler(iniFileName) { }
 protected:
+	const GenderStrMapper& _genderStrMap = DefaultGenderStrMapper();
 	const string _iniFileName;
 	const IniFileHandler _iniHandler;
 
-	wstring_map_pair getMapFromCache(const string& vnId) const override {
+	CharMappings getMapFromCache(const string& vnId) const override {
 		auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
 
 		wstring fullNameSection = createFullNameSectionName(vnId);
+		if (!ini->sectionExists(fullNameSection)) return CharMappings();
 		wstring_map fullNameMap = getNamesFromSection(*ini, fullNameSection);
 
 		wstring singleNameSection = createSingleNameSectionName(vnId);
 		wstring_map singleNameMap = getNamesFromSection(*ini, singleNameSection);
-		return wstring_map_pair(fullNameMap, singleNameMap);
+
+		wstring genderSection = createGenderSectionName(vnId);
+		if (!ini->sectionExists(genderSection)) return CharMappings();
+		gender_map genderMap = getGendersFromSection(*ini, genderSection);
+
+		return CharMappings(fullNameMap, singleNameMap, genderMap);
 	}
 
-	void saveMapToCache(const string& vnId, const wstring_map_pair& map) override {
+	void saveMapToCache(const string& vnId, const CharMappings& map) override {
 		auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
 		
 		wstring fullNameSection = createFullNameSectionName(vnId);
-		addNamesToSection(*ini, fullNameSection, map.first);
+		addNamesToSection(*ini, fullNameSection, map.fullNameMap);
 
 		wstring singleNameSection = createSingleNameSectionName(vnId);
-		addNamesToSection(*ini, singleNameSection, map.second);
+		addNamesToSection(*ini, singleNameSection, map.singleNameMap);
+
+		wstring genderSection = createGenderSectionName(vnId);
+		addGendersToSection(*ini, genderSection, map.genderMap);
 
 		_iniHandler.saveIni(*ini);
 	}
 private:
 	wstring createFullNameSectionName(const string& vnId) const {
-		return convertToW(vnId) + L"-Full";
+		return StrHelper::convertToW(vnId) + L"-Full";
 	}
 
 	wstring createSingleNameSectionName(const string& vnId) const {
-		return convertToW(vnId) + L"-Single";
+		return StrHelper::convertToW(vnId) + L"-Single";
+	}
+
+	wstring createGenderSectionName(const string& vnId) const {
+		return StrHelper::convertToW(vnId) + L"-Gender";
 	}
 
 	wstring_map getNamesFromSection(const IniContents& ini, const wstring& sectionName) const {
 		vector<pair<wstring, wstring>> fullNamesList = ini.getAllValues(sectionName);
 		wstring_map nameMap = pairVectorToMap(fullNamesList);
 		return nameMap;
+	}
+
+	gender_map getGendersFromSection(const IniContents& ini, const wstring& sectionName) const {
+		wstring_map genderStrMap = getNamesFromSection(ini, sectionName);
+		return convertTo(genderStrMap);
 	}
 
 	wstring_map pairVectorToMap(vector<pair<wstring, wstring>> pairVector) const {
@@ -157,6 +177,26 @@ private:
 		return map;
 	}
 
+	gender_map convertTo(const wstring_map& map) const {
+		gender_map genders{};
+
+		for (const auto& m : map) {
+			genders[m.first] = _genderStrMap.map(m.second);
+		}
+
+		return genders;
+	}
+
+	wstring_map convertTo(const gender_map& map) const {
+		wstring_map genderStrs{};
+
+		for (const auto& m : map) {
+			genderStrs[m.first] = _genderStrMap.map(m.second);
+		}
+
+		return genderStrs;
+	}
+
 	void addNamesToSection(IniContents& ini, const wstring& sectionName, const wstring_map& map) {
 		ini.removeSection(sectionName);
 
@@ -164,6 +204,11 @@ private:
 			if (name.first.empty()) continue;
 			ini.setValue(sectionName, name.first, name.second);
 		}
+	}
+
+	void addGendersToSection(IniContents& ini, const wstring& sectionName, const gender_map& map) {
+		wstring_map strMap = convertTo(map);
+		addNamesToSection(ini, sectionName, strMap);
 	}
 };
 
@@ -173,14 +218,14 @@ public:
 	MemoryCacheNameRetriever(NameRetriever& mainRetriever, const function<bool()> reloadCacheGetter) 
 		: CacheNameRetriever(mainRetriever, reloadCacheGetter) { }
 private:
-	unordered_map<string, wstring_map_pair> _mapCache{};
+	unordered_map<string, CharMappings> _mapCache{};
 protected:
-	wstring_map_pair getMapFromCache(const string& vnId) const override {
-		return _mapCache.find(vnId) != _mapCache.end() ? _mapCache.at(vnId) : wstring_map_pair();
+	CharMappings getMapFromCache(const string& vnId) const override {
+		return _mapCache.find(vnId) != _mapCache.end() ? _mapCache.at(vnId) : CharMappings();
 	}
 
-	void saveMapToCache(const string& vnId, const wstring_map_pair& map) override {
-		if (map.first.empty()) return;
+	void saveMapToCache(const string& vnId, const CharMappings& map) override {
+		if (map.fullNameMap.empty()) return;
 		_mapCache[vnId] = map;
 	}
 };

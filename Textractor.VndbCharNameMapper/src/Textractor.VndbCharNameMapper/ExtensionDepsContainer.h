@@ -16,7 +16,7 @@ public:
 class DefaultExtensionDepsContainer : public ExtensionDepsContainer {
 public:
 	DefaultExtensionDepsContainer(const string& moduleName) {
-		_configRetriever = make_unique<IniConfigRetriever>(_configIniFileName, convertToW(moduleName));
+		_configRetriever = make_unique<IniConfigRetriever>(_configIniFileName, StrHelper::convertToW(moduleName));
 
 		_httpClient = make_unique<CurlProcHttpClient>(
 			[this]() { return _configRetriever->getConfig().customCurlPath; });
@@ -40,8 +40,11 @@ public:
 			moduleName + ".ini", *_httpNameRetriever, reloadCacheGetter);
 		_memCacheNameRetriever = make_unique<MemoryCacheNameRetriever>(*_iniCacheNameRetriever, reloadCacheGetter);
 
+		_procNameRetriever = make_unique<WinApiProcessNameRetriever>();
+		_vnIdsParser = make_unique<DefaultVnIdsParser>(*_procNameRetriever);
+
 		_mappingManager = make_unique<DefaultNameMappingManager>(
-			*_configRetriever, *_nameMapper, *_memCacheNameRetriever);
+			*_configRetriever, *_nameMapper, *_memCacheNameRetriever, *_vnIdsParser);
 	}
 
 	virtual NameMappingManager& getNameMappingManager() {
@@ -62,5 +65,7 @@ private:
 	unique_ptr<NameRetriever> _iniCacheNameRetriever = nullptr;
 	unique_ptr<NameRetriever> _memCacheNameRetriever = nullptr;
 	unique_ptr<NameMapper> _nameMapper = nullptr;
+	unique_ptr<ProcessNameRetriever> _procNameRetriever = nullptr;
+	unique_ptr<VnIdsParser> _vnIdsParser = nullptr;
 	unique_ptr<NameMappingManager> _mappingManager = nullptr;
 };

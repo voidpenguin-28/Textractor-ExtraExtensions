@@ -1,43 +1,61 @@
 #pragma once
 
+#include "Libraries/strhelper.h"
 #include "HtmlParser.h"
 #include "ExtensionConfig.h"
+#include "GenderStrMapper.h"
 #include <string>
 using namespace std;
 
 class NameMapper {
 public:
 	virtual ~NameMapper() { }
-	virtual wstring applyNameMappings(const wstring_map_pair& nameMap, wstring str) const = 0;
+	virtual wstring applyNameMappings(MappingMode mappingMode, const CharMappings& charMap, wstring str) const = 0;
 };
 
 
 class DefaultNameMapper : public NameMapper {
 public:
-	wstring applyNameMappings(const wstring_map_pair& nameMap, wstring str) const override {
-		str = replaceNames(nameMap.first, str);
-		str = replaceNames(nameMap.second, str);
+	wstring applyNameMappings(MappingMode mappingMode, const CharMappings& charMap, wstring str) const override {
+		if (mappingMode == MappingMode::None) return str;
+
+		str = replaceNames(mappingMode, charMap.fullNameMap, charMap.genderMap, str);
+		str = replaceNames(mappingMode, charMap.singleNameMap, charMap.genderMap, str);
 		return str;
 	}
 private:
-	wstring replaceNames(const wstring_map& nameMap, wstring str) const {
+	const GenderStrMapper& _genderStrMapper = DefaultGenderStrMapper();
+
+	wstring replaceNames(MappingMode mappingMode, const wstring_map& nameMap, 
+		const gender_map& genderMap, wstring str) const
+	{
+		if (mappingMode == MappingMode::None) return str;
+		wstring mappedName;
+
 		for (const auto& name : nameMap) {
 			if (str.find(name.first) == string::npos) continue;
-			str = replace(str, name.first, name.second);
+
+			mappedName = name.second;
+			if (mappingMode == MappingMode::NameAndGender) 
+				mappedName = appendGenderToName(mappedName, genderMap);
+
+			str = StrHelper::replace<wchar_t>(str, name.first, mappedName);
 		}
 
 		return str;
 	}
 
-	wstring replace(const wstring& input, const wstring& target, const wstring& replacement) const {
-		wstring result = input;
-		size_t startPos = 0;
+	wstring appendGenderToName(wstring name, const gender_map& genderMap) const {
+		Gender gender = parseGender(name, genderMap);
+		if (gender == Gender::Unknown) return name;
 
-		while ((startPos = result.find(target, startPos)) != wstring::npos) {
-			result.replace(startPos, target.length(), replacement);
-			startPos += replacement.length();
-		}
+		wstring genderStr = _genderStrMapper.map(gender);
+		return name + L" (" + genderStr + L")";
+	}
 
-		return result;
+	Gender parseGender(const wstring& name, const gender_map& genderMap) const {
+		wstring newName = StrHelper::split<wchar_t>(name, L' ', true).back();
+		Gender gender = genderMap.find(newName) != genderMap.end() ? genderMap.at(newName) : Gender::Unknown;
+		return gender;
 	}
 };

@@ -1,5 +1,5 @@
 ﻿
-#include "Libraries/winmsg.h";
+#include "Libraries/winmsg.h"
 #include "Extension.h"
 #include "ExtensionDepsContainer.h"
 #include <string>

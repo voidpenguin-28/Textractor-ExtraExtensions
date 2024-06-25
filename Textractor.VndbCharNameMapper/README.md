@@ -6,9 +6,11 @@ This sometimes may be necessary to translate certain names properly since the ka
 
 This extension will automatically retrieve the Japanese and English names of all known characters for a specified visual novel from https://vndb.org (popular visual novel database site). Each sentence received by Textrator will then be checked if a particular character name is found and will auto-translate it into its English equivalent, based on an appropriate name mapping.
 
+As of v1.2.0, this also supports applying a character's gender to the text as well (if desired). Gender data is also retrieved from vndb's character database.
+
 ![Example](img/example1.png)
 
-The following are auto-translated:
+The following are auto-translated/mapped:
 * Full names (first & last name)
 * First names
 * Last names
@@ -107,6 +109,26 @@ Here is the list of currently supported config values for this extension.
 			VnIds=v4|v24
 			;;...omitted...
 			```
+	- As of v1.2.0, this config value also supports App Name to VnId mappings.
+		- This means that if you can define key-value pairs which map a specific app to a specific VnId.
+			- This can be useful if you have multiple VnIds defined but want a specific app to use a specific VnId.
+		- The key would be the app name, the value would be the VnId
+			- Key value pairs are delimited by an equal sign ('=')
+			- The app name is the name of the executable used to run the visual novel. The easiest way to find this name is to look at the app name dropdown in Textractor.
+			![AppName-Example](img/appname-example.png)
+				- "Farthest2015" is the app name in the above example.
+				- **Note: The file extension (ex: ".exe") should not be included in the app name**
+			- It is okay to mix together VnIds with app name mappings and VnIds without app name mappings
+				- Ex: "*ABC123=v1234|v1278|DEF456=v1188*"
+		- Example: 
+		```ini
+		VnIds="ABC123=v1234|Farthest2015=v1278|v1188"
+		VnIdDelim=|
+		```
+		- How mappings are applied:
+			- If an app mapping is found for the current app, then the VnId tied to that app name will be used for name mappings.
+			- If no app mappings if found for the current app, then all **non-mapped** VnIds will be used for name mappings.
+				- Ex: If *VnIds="Farthest2014=v1234|ABC123=v1278|v1188|v1199"*, and the current app is named "MoeMoe". Then only VnIds v1188 & v1199 will be used for name mappings.
 4. **VnIdDelim**: The delimiter/separator to use when specifying more than one visual novel identifier in the "VnIds" config value.
 	- The default value is '|', thus each identifier should be separated by a '|' . (Ex: *VnIds=v4|v24*)
 	- If you changed the "VnIdDelim" value to ';', then each visual novel identifier would need to be separated by a semi-colon. (Ex: *VnIds=v4;v24*)
@@ -117,16 +139,30 @@ Here is the list of currently supported config values for this extension.
 	VnIdDelim=;
 	;;...omitted...
 	```
-5. **MinNameCharSize**: The minimum number of Japanese characters that must be present in a name.
+5. **MappingMode**: Controls how name mappings should be applied.
+	- Default value: '1' (apply only name mappings)
+	- Possible values:
+		- **0**: Do not apply any mappings.
+			- Even when using this mode, name/gender mappings will still be retrieved and cached; however, they will not be applied to the text being processed by Textractor.
+		- **1**: Only apply name mappings (no gender mappings).
+		- **2**: Apply name and gender mappings.
+			- Gender is suffixed to the name mapping in parenthesis.
+				- If gender is unknown (U), only the name will be mapped.
+			- Ex: Name=Azusa, Gender=Female: "*Azusa (F)「ち、ちがわい！」*"
+			- Possible gender values:
+				- **M**: Male
+				- **F**: Female
+				- **U**: Unknown
+6. **MinNameCharSize**: The minimum number of Japanese characters that must be present in a name.
 	- If a character's name is less than this number, then that name will not get mapped.
 	- Default value: '2'
 	- Ex: If this value is set to '2' and a character has a first or last name that is only 1 JP character long (ex: 杏), then that name will not get mapped to English.
 	- This config value exists to reduce potential false positives in certain cirumstances. For example, if a character's name is 杏, but a sentence uses the kanji 杏 within other non-name words, then that would result in an incorrect JP=>EN mapping.
 		- If you are not concerned about false positives, then you can simply adjust this value to '1', and thus all names will get mapped regardless of length.
-6. **ActiveThreadOnly**: Indicates if this extension should only map names for the currently selected thread in Textractor.
+7. **ActiveThreadOnly**: Indicates if this extension should only map names for the currently selected thread in Textractor.
 	- Default value: '1' (map current thread only)
 	- If set to '0', then this extension will attempt to map names for all threads.
-7. **SkipConsoleAndClipboard**: Allows you to exclude the Console and/or Clipboard threads from mapping names.
+8. **SkipConsoleAndClipboard**: Allows you to exclude the Console and/or Clipboard threads from mapping names.
 	- Default value: '1' (skip Console and Clipboard threads)
 	- Possible values:
 		- **0**: Do not skip Console nor Clipboard threads
@@ -134,7 +170,7 @@ Here is the list of currently supported config values for this extension.
 		- **2**: Skip the Console thread (but not the Clipboard thread)
 		- **3**: Skip the Clipboard thread (but not the Console thread)
 	- This setting applies regardless of the value of the *ActiveThreadOnly* config key.
-8. **ReloadCacheOnLaunch**: Determines whether to reload the character name mapping cache each time Textractor is launched.
+9. **ReloadCacheOnLaunch**: Determines whether to reload the character name mapping cache each time Textractor is launched.
 	- Default value: '0' (do not reload)
 	- When this extension retrieves name mappings for a visual novel from vndb, it then caches them to a cache file called "\*\*ExtensionName\*\*.ini" (ex: *Textractor.VndbCharNameMapper.ini*).
 		- Name mappings are retrieved from this cache file before attempting to make a network request to vndb. This is to reduce the number of unneeded network requests your system makes to vndb.
@@ -142,7 +178,7 @@ Here is the list of currently supported config values for this extension.
 	- Therefore, by setting this config value to '1', each time Textractor is launched, the file cache will be reloaded from vndb.
 		- This can be useful for visual novel entries in vndb that may be constantly updated, such as recently released visual novels.
 		- Thus this helps ensure that the list of characters is up-to-date.
-9. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
+10. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
 	- Default value: '' (blank value indicates to use system curl path)
 	- As previously stated, curl is necessary for this extension to perform network requests.
 	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
@@ -167,6 +203,7 @@ Disabled=0
 UrlTemplate=https://vndb.org/{0}/chars
 VnIds=v4|v24
 VnIdDelim=|
+MappingMode=1
 MinNameCharSize=1
 ActiveThreadOnly=1
 SkipConsoleAndClipboard=1

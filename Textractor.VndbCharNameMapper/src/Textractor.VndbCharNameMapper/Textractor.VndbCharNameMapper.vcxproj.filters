@@ -13,9 +13,6 @@
     <ClInclude Include="ExtensionConfig.h" />
     <ClInclude Include="HtmlParser.h" />
     <ClInclude Include="NameMapper.h" />
-    <ClInclude Include="Libraries\stringconvert.h">
-      <Filter>Libraries</Filter>
-    </ClInclude>
     <ClInclude Include="Libraries\curlproc.h" />
     <ClInclude Include="Libraries\inihandler.h" />
     <ClInclude Include="Common.h" />
@@ -24,6 +21,10 @@
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="Libraries\winmsg.h" />
+    <ClInclude Include="Libraries\strhelper.h" />
+    <ClInclude Include="GenderStrMapper.h" />
+    <ClInclude Include="ProcessNameRetriever.h" />
+    <ClInclude Include="VnIdsParser.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Libraries">

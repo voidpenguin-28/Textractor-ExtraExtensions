@@ -1,17 +1,23 @@
 ﻿
 #include "HtmlParser.h"
-#include "Libraries/stringconvert.h"
+#include "Libraries/strhelper.h"
 #include <algorithm>
+#include <functional>
 #include <sstream>
 
 const unordered_set<wchar_t> VndbHtmlParser::_nameDelims = { L' ', L'・' };
 
+
 const regex VndbHtmlParser::_spoilCharsPathPattern = 
 	regex("<a .{0,}href=\"([^\"]+)\"[^>]{0,}>Spoil me!");
+const wregex VndbHtmlParser::_charHeaderPattern =
+	wregex(L"<div class=\"[^\"]{0,}chardetails[^\"]{0,}\">.+?<thead>(.+?)</thead>");
 const wregex VndbHtmlParser::_jpNamePattern = 
-	wregex(L"<div class=\"[^\"]{0,}chardetails[^\"]{0,}\">.+?<thead>.+?<small [^>]+>([^<]+)");
+	wregex(L"<small [^>]+>([^<]+)");
 const wregex VndbHtmlParser::_enNamePattern = 
-	wregex(L"<div class=\"[^\"]{0,}chardetails[^\"]{0,}\">.+?<thead>.+?<a href=[^>]+>([^<]+)");
+	wregex(L"<a href=[^>]+>([^<]+)");
+const wregex VndbHtmlParser::_genderPattern =
+	wregex(L"<abbr class=\"icon-gen[^\"]+\" title=\"([^\"]+)\"");
 
 
 // *** PUBLIC
@@ -23,23 +29,28 @@ string VndbHtmlParser::extractSpoilCharsPath(const string& html) const {
 	return match[1].str();
 }
 
-wstring_map_pair VndbHtmlParser::getNameMappings(const string& html) const {
-	wstring whtml = convertToW(html);
+CharMappings VndbHtmlParser::getNameMappings(const string& html) const {
+	wstring whtml = StrHelper::convertToW(html);
 	return getNameMappings(whtml);
 }
 
-wstring_map_pair VndbHtmlParser::getNameMappings(const wstring& html) const {
-	vector<wstring> jpNames = parseAllJpNames(html);
-	vector<wstring> enNames = parseAllEnNames(html);
-	wstring_map_pair nameMappings = convertToNameMappings(jpNames, enNames);
+CharMappings VndbHtmlParser::getNameMappings(const wstring& html) const {
+	vector<wstring> charHeaders = parseAllCharHeaders(html);
+
+	vector<wstring> jpNames = parseAllJpNames(charHeaders);
+	vector<wstring> enNames = parseAllEnNames(charHeaders);
+	vector<Gender> genders = parseAllGenders(charHeaders);
+
+	CharMappings nameMappings = convertToNameMappings(jpNames, enNames, genders);
 	return nameMappings;
 }
 
-wstring_map_pair VndbHtmlParser::convertToNameMappings(
-	const vector<wstring>& jpNames, const vector<wstring>& enNames) const
+CharMappings VndbHtmlParser::convertToNameMappings(const vector<wstring>& jpNames, 
+	const vector<wstring>& enNames, const vector<Gender>& genders) const
 {
 	wstring_map fullNameMap = { };
 	wstring_map singleNameMap = { };
+	gender_map genderMap = { };
 
 	if (jpNames.size() != enNames.size())
 		throw runtime_error("Number of parsed JP & EN names do not match; JP: " + to_string(jpNames.size()) + ", EN: " + to_string(enNames.size()));
@@ -52,6 +63,8 @@ wstring_map_pair VndbHtmlParser::convertToNameMappings(
 
 		vector<wstring> jpNameParts = splitStrByDelims(jpNames[i]);
 		vector<wstring> enNameParts = splitStrByDelims(enNames[i]);
+
+		addIfNotExist(genderMap, enNameParts[enNameParts.size() - 1], genders[i]);
 		if (jpNameParts.size() != enNameParts.size() || jpNameParts.size() <= 1) continue;
 
 		for (size_t j = 0; j < jpNameParts.size(); j++) {
@@ -60,21 +73,43 @@ wstring_map_pair VndbHtmlParser::convertToNameMappings(
 		}
 	}
 
-	return wstring_map_pair(fullNameMap, singleNameMap);
+	return CharMappings(fullNameMap, singleNameMap, genderMap);
 }
 
 vector<wstring> VndbHtmlParser::parseAllJpNames(const wstring& html) const {
-	return parseAllNames(html, _jpNamePattern);
+	vector<wstring> charHeaders = parseAllCharHeaders(html);
+	return parseAllJpNames(charHeaders);
 }
 
 vector<wstring> VndbHtmlParser::parseAllEnNames(const wstring& html) const {
-	return parseAllNames(html, _enNamePattern);
+	vector<wstring> charHeaders = parseAllCharHeaders(html);
+	return parseAllEnNames(charHeaders);
 }
-
 
 // *** PRIVATE
 
-void VndbHtmlParser::addIfNotExist(wstring_map& map, const wstring& key, const wstring& value) const {
+vector<wstring> VndbHtmlParser::parseAllCharHeaders(const wstring& html) const {
+	return parseAll(html, _charHeaderPattern);
+}
+
+vector<wstring> VndbHtmlParser::parseAllJpNames(const vector<wstring>& htmlSections) const {
+	return parseAll(htmlSections, _jpNamePattern);
+}
+
+vector<wstring> VndbHtmlParser::parseAllEnNames(const vector<wstring>& htmlSections) const {
+	return parseAll(htmlSections, _enNamePattern);
+}
+
+vector<Gender> VndbHtmlParser::parseAllGenders(const vector<wstring>& htmlSections) const {
+	static const function<Gender(const wstring&)> genderMap = [this](const wstring& gender) {
+		return _genderStrMap.map(gender);
+	};
+
+	return parseAll(htmlSections, _genderPattern, genderMap);
+}
+
+template<typename T>
+void VndbHtmlParser::addIfNotExist(templ_map<T>& map, const wstring& key, const T& value) const {
 	if (map.count(key)) return;
 	map[key] = value;
 }
@@ -111,17 +146,39 @@ bool VndbHtmlParser::isNameDelim(wchar_t ch) const {
 	return _nameDelims.find(ch) != _nameDelims.end();
 }
 
-vector<wstring> VndbHtmlParser::parseAllNames(const wstring& html, const wregex& pattern) const {
+vector<wstring> VndbHtmlParser::parseAll(const wstring& html, const wregex& pattern) const {
 	wsregex_iterator iterator(html.begin(), html.end(), pattern);
 	wsregex_iterator end;
-
-	vector<wstring> names;
+	vector<wstring> values;
 
 	while (iterator != end) {
 		wsmatch match = *iterator;
-		names.push_back(match[1].str());
+		values.push_back(match[1].str());
 		++iterator;
 	}
 
-	return names;
+	return values;
+}
+
+vector<wstring> VndbHtmlParser::parseAll(const vector<wstring>& htmlSections, const wregex& pattern) const {
+	static const function<wstring(const wstring&)> customMap = [](const wstring& v) { return v; };
+	return parseAll(htmlSections, pattern, customMap);
+}
+
+template<typename T>
+vector<T> VndbHtmlParser::parseAll(const vector<wstring>& htmlSections,
+	const wregex& pattern, const function<T(const wstring&)>& customValMap) const
+{
+	vector<T> mappings{};
+	wsmatch match;
+	wstring matchVal;
+	T mapVal;
+	
+	for (const wstring& section : htmlSections) {
+		matchVal = regex_search(section, match, pattern) ? match[1].str() : L"";
+		mapVal = customValMap(matchVal);
+		mappings.push_back(mapVal);
+	}
+
+	return mappings;
 }
