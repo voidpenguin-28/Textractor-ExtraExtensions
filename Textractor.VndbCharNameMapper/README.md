@@ -6,7 +6,7 @@ This sometimes may be necessary to translate certain names properly since the ka
 
 This extension will automatically retrieve the Japanese and English names of all known characters for a specified visual novel from https://vndb.org (popular visual novel database site). Each sentence received by Textrator will then be checked if a particular character name is found and will auto-translate it into its English equivalent, based on an appropriate name mapping.
 
-As of v1.2.0, this also supports applying a character's gender to the text as well (if desired). Gender data is also retrieved from vndb's character database.
+As of v1.2.0, this also supports applying a character's gender to the text as well (if desired). Gender data is also retrieved from vndb's character database. Reference the "MappingMode" config value for more details on this feature.
 
 ![Example](img/example1.png)
 
@@ -115,16 +115,16 @@ Here is the list of currently supported config values for this extension.
 		- The key would be the app name, the value would be the VnId
 			- Key value pairs are delimited by an equal sign ('=')
 			- The app name is the name of the executable used to run the visual novel. The easiest way to find this name is to look at the app name dropdown in Textractor.
-			![AppName-Example](img/appname-example.png)
+			- ![AppName-Example](img/appname-example.png)
 				- "Farthest2015" is the app name in the above example.
 				- **Note: The file extension (ex: ".exe") should not be included in the app name**
 			- It is okay to mix together VnIds with app name mappings and VnIds without app name mappings
 				- Ex: "*ABC123=v1234|v1278|DEF456=v1188*"
 		- Example: 
-		```ini
-		VnIds="ABC123=v1234|Farthest2015=v1278|v1188"
-		VnIdDelim=|
-		```
+			```ini
+			VnIds="ABC123=v1234|Farthest2015=v1278|v1188"
+			VnIdDelim=|
+			```
 		- How mappings are applied:
 			- If an app mapping is found for the current app, then the VnId tied to that app name will be used for name mappings.
 			- If no app mappings if found for the current app, then all **non-mapped** VnIds will be used for name mappings.
@@ -148,7 +148,7 @@ Here is the list of currently supported config values for this extension.
 		- **2**: Apply name and gender mappings.
 			- Gender is suffixed to the name mapping in parenthesis.
 				- If gender is unknown (U), only the name will be mapped.
-			- Ex: Name=Azusa, Gender=Female: "*Azusa (F)「ち、ちがわい！」*"
+			- Ex: Name=Azusa, Gender=Female: "*あずさ「ち、ちがわい！」*" => "*Azusa (F)「ち、ちがわい！」*"
 			- Possible gender values:
 				- **M**: Male
 				- **F**: Female
