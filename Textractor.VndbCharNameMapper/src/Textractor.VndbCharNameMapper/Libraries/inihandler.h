@@ -57,6 +57,7 @@ private:
 	static const IniParser _iniParser;
 	static const unordered_map<wchar_t, wchar_t> _escapePairs;
 	static const vector<pair<wstring, wstring>> _formatPairs2;
+	static const wregex _unicodeHexPattern;
 
 	vector<wstring> _iniLines;
 	mutable mutex _mutex;
@@ -73,6 +74,9 @@ private:
 
 	bool indexValid(size_t index) const;
 	wstring formatReadKeyValue(wstring value) const;
+	unsigned char hexToByte(const string& hex) const;
+	wstring decodeEscapedUTF8Str(const wstring& escaped) const;
+	string decodeEscapedUTF8Str(const string& escaped) const;
 	void replaceAndRemoveCh(wstring& value, size_t startIndex, wchar_t replaceCh) const;
 	wstring formatWriteKeyValue(wstring value) const;
 	void addNewKeyValue(const wstring& section, const wstring& key, const wstring& value);
@@ -100,7 +104,16 @@ private:
 
 	vector<wstring> getIniFileContents() const;
 	vector<wstring> splitLines(const wstring& text) const;
-
-	wstring convertToW(const string& str) const;
-	string convertFromW(const wstring& str) const;
 };
+
+class StrConverter {
+public:
+	static wstring convertToW(const string& str) {
+		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
+	}
+
+	static string convertFromW(const wstring& str) {
+		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().to_bytes(str);
+	}
+};
+

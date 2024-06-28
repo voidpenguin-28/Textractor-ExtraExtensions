@@ -129,6 +129,9 @@ Here is the list of currently supported config values for this extension.
 			- If an app mapping is found for the current app, then the VnId tied to that app name will be used for name mappings.
 			- If no app mappings if found for the current app, then all **non-mapped** VnIds will be used for name mappings.
 				- Ex: If *VnIds="Farthest2014=v1234|ABC123=v1278|v1188|v1199"*, and the current app is named "MoeMoe". Then only VnIds v1188 & v1199 will be used for name mappings.
+		- **Important note:** If the app name assigned to this config value contains unicode characters outside of the ASCII range (ex: Japanese characters), Textractor ends up automatically converting them to their hex equivalent when Textractor is opened or closed.
+			- Ex: *VnIds="本当=v1234"* => *VnIds="\\xe6\\x9c\\xac\xe5\\xbd\\x93=v1234"*
+			- Do not be alarmed, >=v1.2.1 of this extension takes this into account and will read these hex-coded values as proper unicode characters when parsing the ini file. No action is needed on your end.
 4. **VnIdDelim**: The delimiter/separator to use when specifying more than one visual novel identifier in the "VnIds" config value.
 	- The default value is '|', thus each identifier should be separated by a '|' . (Ex: *VnIds=v4|v24*)
 	- If you changed the "VnIdDelim" value to ';', then each visual novel identifier would need to be separated by a semi-colon. (Ex: *VnIds=v4;v24*)

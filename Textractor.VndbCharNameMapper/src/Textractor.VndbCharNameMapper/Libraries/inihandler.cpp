@@ -160,6 +160,8 @@ const vector<pair<wstring, wstring>> IniContents::_formatPairs2 = {
 	pair<wstring, wstring>(L"\t", L"\\t"),
 };
 
+const wregex IniContents::_unicodeHexPattern(L"(?:\\\\x[0-9a-fA-F]{2})+");
+
 
 bool IniContents::_sectionExists(const wstring& section) const {
 	size_t sectionIndex = _iniParser.findSectionIndex(_iniLines, section);
@@ -253,16 +255,58 @@ wstring IniContents::formatReadKeyValue(wstring value) const {
 	static constexpr wchar_t escapeCh = L'\\';
 	if (value.empty()) return value;
 	wchar_t nextCh;
+	wsmatch utfMatch;
 
 	for (size_t i = 0; i < value.size() - 1; i++) {
 		if (value[i] != escapeCh) continue;
 		nextCh = value[i + 1];
 
-		if (_escapePairs.find(nextCh) != _escapePairs.end())
+		if (nextCh == L'x' && regex_search(value, utfMatch, _unicodeHexPattern)) {
+			wstring matchStr = utfMatch.str();
+			value = replace(value, matchStr, decodeEscapedUTF8Str(matchStr));
+		}
+		else if (_escapePairs.find(nextCh) != _escapePairs.end()) {
 			replaceAndRemoveCh(value, i, _escapePairs.at(nextCh));
+		}
 	}
 
 	return value;
+}
+
+unsigned char IniContents::hexToByte(const string& hex) const {
+	unsigned int value = 0;
+	stringstream ss;
+	ss << std::hex << hex;
+	ss >> value;
+	return static_cast<unsigned char>(value);
+}
+
+wstring IniContents::decodeEscapedUTF8Str(const wstring& escaped) const {
+	try {
+		return StrConverter::convertToW(
+			decodeEscapedUTF8Str(StrConverter::convertFromW(escaped)));
+	}
+	catch (exception&) {
+		return escaped;
+	}
+}
+
+string IniContents::decodeEscapedUTF8Str(const string& escaped) const {
+	string result;
+
+	for (size_t i = 0; i < escaped.length(); ) {
+		if (escaped[i] == L'\\' && i + 3 < escaped.length() && escaped[i + 1] == L'x') {
+			string hex = escaped.substr(i + 2, 2);
+			result += hexToByte(hex);
+			i += 4;
+		}
+		else {
+			result += escaped[i];
+			++i;
+		}
+	}
+
+	return result;
 }
 
 void IniContents::replaceAndRemoveCh(wstring& value, size_t startIndex, wchar_t replaceCh) const {
@@ -342,7 +386,7 @@ void IniFileHandler::_saveIni(const wstring& content, const string& newFilePath)
 	ofstream f(filePath);
 	if (!f.is_open()) throw runtime_error("Could not open ini file: " + filePath);
 
-	f << convertFromW(content);
+	f << StrConverter::convertFromW(content);
 	f.close();
 }
 
@@ -366,7 +410,7 @@ vector<wstring> IniFileHandler::getIniFileContents() const {
 	buffer << f.rdbuf();
 	f.close();
 
-	wstring contents = convertToW(buffer.str());
+	wstring contents = StrConverter::convertToW(buffer.str());
 	vector<wstring> lines = splitLines(contents);
 	return lines;
 }
@@ -382,12 +426,4 @@ vector<wstring> IniFileHandler::splitLines(const wstring& text) const {
 	}
 
 	return lines;
-}
-
-wstring IniFileHandler::convertToW(const string& str) const {
-	return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
-}
-
-string IniFileHandler::convertFromW(const wstring& str) const {
-	return wstring_convert<codecvt_utf8_utf16<wchar_t>>().to_bytes(str);
 }
