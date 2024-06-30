@@ -26,15 +26,24 @@ size_t IniParser::findNextSection(const vector<wstring>& lines, size_t lineStart
 
 
 wstring IniParser::extractSectionName(const wstring& line) const {
-	return getMatch(line, _sectionPattern, 1);
+	wstring section = trimWhitespace(line);
+	if (line.empty()) return L"";
+
+	return section[0] == SECT_START_CH && section.back() == SECT_END_CH ? section : L"";
 }
 
 wstring IniParser::extractKeyName(const wstring& line) const {
-	return getMatch(line, _keyValPattern, 1);
+	size_t delimIndex = line.find(KEY_VAL_DELIM);
+	if (delimIndex == wstring::npos) return L"";
+
+	return trimWhitespace(line.substr(0, delimIndex));
 }
 
 wstring IniParser::extractKeyValue(const wstring& line) const {
-	return getMatch(line, _keyValPattern, 2);
+	size_t delimIndex = line.find(KEY_VAL_DELIM);
+	if (delimIndex == wstring::npos) return L"";
+
+	return trimWhitespace(line.substr(delimIndex + 1));
 }
 
 wstring IniParser::formatSection(wstring section) const {
@@ -50,12 +59,7 @@ wstring IniParser::formatSection(wstring section) const {
 
 // *** PRIVATE IniParser
 
-const wstring IniParser::SECT_START_CH = L"[";
-const wstring IniParser::SECT_END_CH = L"]";
 const wstring IniParser::MATCH_ANY = L"*";
-const wregex IniParser::_sectionPattern = wregex(L"^\\s{0,}(\\[.+\\])\\s{0,}$");
-const wregex IniParser::_keyValPattern = wregex(L"^\\s{0,}([^=]+)\\s{0,}=\\s{0,}(.{0,})\\s{0,}$");
-
 
 wstring IniParser::trimWhitespace(const wstring& str) const {
 	size_t first = str.find_first_not_of(L" \t\n\r");
@@ -80,12 +84,6 @@ size_t IniParser::findLineContaining(const vector<wstring>& lines, const wstring
 	}
 
 	return string::npos;
-}
-
-wstring IniParser::getMatch(const wstring& str, const wregex& pattern, size_t matchIndex) const {
-	wsmatch matches;
-
-	return regex_match(str, matches, pattern) ? matches[matchIndex].str() : L"";
 }
 
 
@@ -159,8 +157,6 @@ const vector<pair<wstring, wstring>> IniContents::_formatPairs2 = {
 	pair<wstring, wstring>(L"\n", L"\\n"),
 	pair<wstring, wstring>(L"\t", L"\\t"),
 };
-
-const wregex IniContents::_unicodeHexPattern(L"(?:\\\\x[0-9a-fA-F]{2})+");
 
 
 bool IniContents::_sectionExists(const wstring& section) const {
@@ -255,15 +251,13 @@ wstring IniContents::formatReadKeyValue(wstring value) const {
 	static constexpr wchar_t escapeCh = L'\\';
 	if (value.empty()) return value;
 	wchar_t nextCh;
-	wsmatch utfMatch;
 
 	for (size_t i = 0; i < value.size() - 1; i++) {
 		if (value[i] != escapeCh) continue;
 		nextCh = value[i + 1];
 
-		if (nextCh == L'x' && regex_search(value, utfMatch, _unicodeHexPattern)) {
-			wstring matchStr = utfMatch.str();
-			value = replace(value, matchStr, decodeEscapedUTF8Str(matchStr));
+		if (nextCh == L'x') {
+			value = decodeEscapedUTF8Str(value);
 		}
 		else if (_escapePairs.find(nextCh) != _escapePairs.end()) {
 			replaceAndRemoveCh(value, i, _escapePairs.at(nextCh));
@@ -374,8 +368,6 @@ void IniFileHandler::saveIni(IniContents& content, const string& newFilePath) co
 
 // *** PRIVATE IniFileHandler
 
-const wregex IniFileHandler::_lineDelimPattern(L"(?:\r\n|\r|\n)");
-
 void IniFileHandler::_saveIni(IniContents& content, const string& newFilePath) const {
 	wstring fileContents = content.stringCopy();
 	_saveIni(fileContents, newFilePath);
@@ -416,14 +408,27 @@ vector<wstring> IniFileHandler::getIniFileContents() const {
 }
 
 vector<wstring> IniFileHandler::splitLines(const wstring& text) const {
-	wsregex_token_iterator iterator(text.begin(), text.end(), _lineDelimPattern, -1);
-	wsregex_token_iterator end;
-	vector<wstring> lines;
+	static constexpr wchar_t CRG_RTN = L'\r';
+	static constexpr wchar_t NW_LN = L'\n';
 
-	while (iterator != end) {
-		lines.push_back(*iterator);
-		++iterator;
+	vector<wstring> lines{};
+	wstring line = L"";
+
+	for (size_t i = 0; i < text.length(); i++) {
+		if (text[i] == CRG_RTN) {
+			lines.push_back(line);
+			line = L"";
+		}
+		else if (text[i] == NW_LN) {
+			if (i > 0 && text[i - 1] == CRG_RTN) continue;
+			lines.push_back(line);
+			line = L"";
+		}
+		else {
+			line += text[i];
+		}
 	}
 
+	lines.push_back(line);
 	return lines;
 }
