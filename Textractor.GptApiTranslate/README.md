@@ -39,6 +39,12 @@ https://platform.openai.com/docs/api-reference/chat
 4. Adjust other config values as desired: [Config Values](#config-values)
 	- Reference the [Tips](#tips) section for guidance on how to improve translation accuracy, reduce API costs, or reduce response times.
 
+#### How to Retrieve an OpenAPI API key:
+- You can create/retrieve your OpenAI API key through your OpenAI account.
+	- You can log into your OpenAI account here: https://platform.openai.com/login?launch
+- If you do not have an OpenAI account, you can register here: https://platform.openai.com/signup
+- If you need further assistance on how to retrieve your API key, reference this guide: https://www.howtogeek.com/885918/how-to-get-an-openai-api-key/
+
 <br>
 
 
