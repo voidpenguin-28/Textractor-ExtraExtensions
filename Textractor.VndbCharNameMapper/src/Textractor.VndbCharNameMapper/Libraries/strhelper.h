@@ -94,7 +94,7 @@ public:
 
 	template<class charT>
 	static vector<string_base<charT>> split(
-		const string_base<charT>& str, const string_base<charT> delim, bool trimWs = false)
+		const string_base<charT>& str, const string_base<charT>& delim, bool trimWs = false)
 	{
 		static const string_base<charT> _space = getSpace<charT>();
 		vector<string_base<charT>> splits;

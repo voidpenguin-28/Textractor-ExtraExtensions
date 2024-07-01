@@ -5,8 +5,8 @@
 #include <fstream>
 #include <functional>
 #include <mutex>
-#include <regex>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 using namespace std;
@@ -23,10 +23,8 @@ public:
 	wstring extractKeyValue(const wstring& line) const;
 	wstring formatSection(wstring section) const;
 private:
-	static const wstring SECT_START_CH, SECT_END_CH;
+	static constexpr wchar_t SECT_START_CH = L'[', SECT_END_CH = L']', KEY_VAL_DELIM = L'=';
 	static const wstring MATCH_ANY;
-	static const wregex _sectionPattern;
-	static const wregex _keyValPattern;
 
 	const function<wstring(const wstring&)> _sectionParser = [this](const wstring& s) { return extractSectionName(s); };
 	const function<wstring(const wstring&)> _keyNameParser = [this](const wstring& s) { return extractKeyName(s); };
@@ -35,7 +33,6 @@ private:
 	wstring trimWhitespace(const wstring& str) const;
 	size_t findLineContaining(const vector<wstring>& lines, const wstring& match,
 		const function<wstring(const wstring&)>& lineParser, size_t lineStart = 0, size_t lineEnd = UINT_MAX) const;
-	wstring getMatch(const wstring& str, const wregex& pattern, size_t matchIndex) const;
 };
 
 
@@ -57,7 +54,6 @@ private:
 	static const IniParser _iniParser;
 	static const unordered_map<wchar_t, wchar_t> _escapePairs;
 	static const vector<pair<wstring, wstring>> _formatPairs2;
-	static const wregex _unicodeHexPattern;
 
 	vector<wstring> _iniLines;
 	mutable mutex _mutex;
@@ -94,7 +90,6 @@ public:
 	IniContents* readIni() const;
 	void saveIni(IniContents& content, const string& newFilePath = "") const;
 private:
-	static const wregex _lineDelimPattern;
 	const string _iniFilePath;
 	mutable mutex _mutex;
 

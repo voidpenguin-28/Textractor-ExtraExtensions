@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="Extension.cpp" />
     <ClCompile Include="ExtensionImpl.cpp" />
-    <ClCompile Include="HtmlParser.cpp" />
     <ClCompile Include="ExtensionConfig.cpp" />
     <ClCompile Include="Libraries\curlproc.cpp" />
     <ClCompile Include="Libraries\inihandler.cpp" />
@@ -11,7 +10,7 @@
   <ItemGroup>
     <ClInclude Include="Extension.h" />
     <ClInclude Include="ExtensionConfig.h" />
-    <ClInclude Include="HtmlParser.h" />
+    <ClInclude Include="HtmlParsers\HtmlParser.h" />
     <ClInclude Include="NameMapper.h" />
     <ClInclude Include="Libraries\curlproc.h" />
     <ClInclude Include="Libraries\inihandler.h" />
@@ -25,6 +24,9 @@
     <ClInclude Include="GenderStrMapper.h" />
     <ClInclude Include="ProcessNameRetriever.h" />
     <ClInclude Include="VnIdsParser.h" />
+    <ClInclude Include="CharMappingConverter.h" />
+    <ClInclude Include="HtmlParsers\RegexVndbHtmlParser.h" />
+    <ClInclude Include="HtmlParsers\StrFindVndbHtmlParser.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Libraries">

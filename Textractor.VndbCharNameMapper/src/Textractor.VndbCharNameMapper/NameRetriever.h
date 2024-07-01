@@ -2,8 +2,8 @@
 
 #include "Libraries/inihandler.h"
 #include "Libraries/strhelper.h"
+#include "HtmlParsers/HtmlParser.h"
 #include "GenderStrMapper.h"
-#include "HtmlParser.h"
 #include "HttpClient.h"
 #include "ExtensionConfig.h"
 #include <functional>
@@ -104,10 +104,11 @@ protected:
 class IniFileCacheNameRetriever : public CacheNameRetriever {
 public:
 	IniFileCacheNameRetriever(const string& iniFileName, NameRetriever& mainNameRetriever, 
-		const function<bool()> reloadCacheGetter) : CacheNameRetriever(mainNameRetriever, reloadCacheGetter), 
-			_iniFileName(iniFileName), _iniHandler(iniFileName) { }
+		const GenderStrMapper& genderStrMap, const function<bool()> reloadCacheGetter) 
+		: CacheNameRetriever(mainNameRetriever, reloadCacheGetter), 
+			_iniFileName(iniFileName), _iniHandler(iniFileName), _genderStrMap(genderStrMap) { }
 protected:
-	const GenderStrMapper& _genderStrMap = DefaultGenderStrMapper();
+	const GenderStrMapper& _genderStrMap;
 	const string _iniFileName;
 	const IniFileHandler _iniHandler;
 

@@ -1,5 +1,6 @@
 
 #pragma once
+#include "HtmlParsers/StrFindVndbHtmlParser.h"
 #include "NameMappingManager.h"
 #include <memory>
 #include <string>
@@ -21,8 +22,12 @@ public:
 		_httpClient = make_unique<CurlProcHttpClient>(
 			[this]() { return _configRetriever->getConfig().customCurlPath; });
 
-		_htmlParser = make_unique<VndbHtmlParser>();
-		_nameMapper = make_unique<DefaultNameMapper>();
+		_vndbGenderStrMapper = make_unique<VndbHtmlGenderStrMapper>();
+		_outGenderStrMapper = make_unique<DefaultGenderStrMapper>();
+		_charMappingConverter = make_unique<DefaultCharMappingConverter>();
+
+		_htmlParser = make_unique<StrFindVndbHtmlParser>(*_charMappingConverter, *_vndbGenderStrMapper);
+		_nameMapper = make_unique<DefaultNameMapper>(*_outGenderStrMapper);
 
 		_httpNameRetriever = make_unique<VndbHttpNameRetriever>(
 			[this]() { return _configRetriever->getConfig().urlTemplate; },
@@ -37,7 +42,7 @@ public:
 		};
 
 		_iniCacheNameRetriever = make_unique<IniFileCacheNameRetriever>(
-			moduleName + ".ini", *_httpNameRetriever, reloadCacheGetter);
+			moduleName + ".ini", *_httpNameRetriever, *_outGenderStrMapper, reloadCacheGetter);
 		_memCacheNameRetriever = make_unique<MemoryCacheNameRetriever>(*_iniCacheNameRetriever, reloadCacheGetter);
 
 		_procNameRetriever = make_unique<WinApiProcessNameRetriever>();
@@ -60,6 +65,9 @@ private:
 
 	unique_ptr<ConfigRetriever> _configRetriever = nullptr;
 	unique_ptr<HttpClient> _httpClient = nullptr;
+	unique_ptr<GenderStrMapper> _vndbGenderStrMapper = nullptr;
+	unique_ptr<GenderStrMapper> _outGenderStrMapper = nullptr;
+	unique_ptr<CharMappingConverter> _charMappingConverter = nullptr;
 	unique_ptr<HtmlParser> _htmlParser = nullptr;
 	unique_ptr<NameRetriever> _httpNameRetriever = nullptr;
 	unique_ptr<NameRetriever> _iniCacheNameRetriever = nullptr;

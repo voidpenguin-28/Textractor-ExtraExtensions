@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Libraries/strhelper.h"
-#include "HtmlParser.h"
+#include "HtmlParsers/HtmlParser.h"
 #include "ExtensionConfig.h"
 #include "GenderStrMapper.h"
 #include <string>
@@ -16,6 +16,8 @@ public:
 
 class DefaultNameMapper : public NameMapper {
 public:
+	DefaultNameMapper(const GenderStrMapper& genderStrMapper) : _genderStrMapper(genderStrMapper) { }
+
 	wstring applyNameMappings(MappingMode mappingMode, const CharMappings& charMap, wstring str) const override {
 		if (mappingMode == MappingMode::None) return str;
 
@@ -24,7 +26,7 @@ public:
 		return str;
 	}
 private:
-	const GenderStrMapper& _genderStrMapper = DefaultGenderStrMapper();
+	const GenderStrMapper& _genderStrMapper;
 
 	wstring replaceNames(MappingMode mappingMode, const wstring_map& nameMap, 
 		const gender_map& genderMap, wstring str) const
