@@ -1,6 +1,9 @@
 
 #pragma once
 #include "../Config/ExtensionConfig.h"
+#include "../_Libraries/regex/Regex.h"
+#include <functional>
+#include <memory>
 
 
 class ApiMsgHelper {
@@ -15,7 +18,10 @@ public:
 
 class DefaultApiMsgHelper : public ApiMsgHelper {
 public:
-	DefaultApiMsgHelper(const ConfigRetriever& configRetriever) : _configRetriever(configRetriever) {}
+	DefaultApiMsgHelper(const ConfigRetriever& configRetriever, 
+		const function<shared_ptr<Regex>(const string& pattern)>& regexMap) 
+		: _configRetriever(configRetriever), _regexMap(regexMap) { }
+
 	GptConfig getConfig() const;
 	string createRequestMsg(const string& sysMsg, const string& userMsg) const;
 	string parseMessageFromResponse(const string& response, bool& error) const;
@@ -26,6 +32,9 @@ private:
 	static const string _defaultResponseMsgPattern;
 	static const string _defaultErrorMsgPattern;
 	static const string _defaultHttpHeaders;
+
+	mutable unordered_map<string, shared_ptr<Regex>> _regexCache{};
+	const function<shared_ptr<Regex>(const string& pattern)> _regexMap;
 	const ConfigRetriever& _configRetriever;
 
 	ExtensionConfig getExtConfig() const;
@@ -33,4 +42,5 @@ private:
 	vector<string> createHttpHeaders(const ExtensionConfig& extConfig, string headersStr) const;
 	string formatUserMsg(const string& msg) const;
 	string parseMessageFromResponse(const string& response, const string& pattern) const;
+	shared_ptr<Regex> getOrSetRegex(const string& pattern) const;
 };

@@ -1,11 +1,9 @@
 
 #include "GptMsgHandle.h"
 #include "../_Libraries/strhelper.h"
+#include <unordered_set>
 
-const vector<wstring> DefaultGptMsgHandler::LINE_SEPS = { L": ", L". " };
-const wregex DefaultGptMsgHandler::_transltSplitPattern(
-	L"(?:^|\n)\\d+(?:" + StrHelper::join<wchar_t>(L"|", LINE_SEPS) + L")");
-
+const wstring DefaultGptMsgHandler::LINE_SEP = L": ";
 
 // *** PUBLIC
 
@@ -26,37 +24,43 @@ wstring DefaultGptMsgHandler::createMsgFromHistory(
 			msgHistLen += msgLen;
 		}
 
-		finalMsg = to_wstring(msgPrefix) + LINE_SEPS[0] + currMsg + L"\n" + finalMsg;
+		finalMsg = to_wstring(msgPrefix) + LINE_SEP + currMsg + L"\n" + finalMsg;
 	}
 
 	return StrHelper::rtrim<wchar_t>(finalMsg, L"\n");
 }
 
-wstring DefaultGptMsgHandler::getLastTranslationFromResponse(const wstring& responseMsg) const {
-	static const wstring QUOT_MRK = L"\"";
-	vector<wstring> lines = regSplit(responseMsg);
-	wstring lastTranslation = L"";
+wstring DefaultGptMsgHandler::getLastTranslationFromResponse(const wstring& str) const {
+	size_t startIndex = str.length(), newStartIndex;
 
-	for (int i = static_cast<int>(lines.size()) - 1; i >= 0; i--) {
-		if (lines[i].empty() || lines[i] == QUOT_MRK) continue;
-		lastTranslation = lines[i];
-		break;
-	}
+	do {
+		startIndex = str.rfind(L'\n', startIndex - 1);
 
-	return lastTranslation;
+		if (startIndex == wstring::npos) {
+			startIndex = 0;
+			if (!isTransLineStart(str, startIndex, newStartIndex))
+				newStartIndex = startIndex;
+
+			break;
+		}
+	} while (!isTransLineStart(str, startIndex + 1, newStartIndex));
+
+	return str.substr(newStartIndex);
 }
+
 
 // *** PRIVATE
 
-vector<wstring> DefaultGptMsgHandler::regSplit(const wstring& str, const wregex& pattern) const {
-	wsregex_token_iterator it(str.begin(), str.end(), pattern, -1);
-	wsregex_token_iterator end;
-	vector<wstring> m;
+bool DefaultGptMsgHandler::isTransLineStart(const wstring& str, size_t startIndex, size_t& newStartIndex) const {
+	static const unordered_set<wchar_t> _seps{ L':', L'.' };
+	newStartIndex = wstring::npos;
+	int i = 0;
+	while (startIndex + i < str.length() && isdigit(str[startIndex + i])) i++;
 
-	while (it != end) {
-		m.push_back(*it);
-		++it;
-	}
+	if (i == 0 || startIndex + i >= str.length() - 1) return false;
+	if (_seps.find(str[startIndex + i]) == _seps.end()) return false;
+	if (str[startIndex + ++i] != L' ') return false;
 
-	return m;
+	newStartIndex = startIndex + i + 1;
+	return true;
 }

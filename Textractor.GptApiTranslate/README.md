@@ -34,12 +34,13 @@ https://platform.openai.com/docs/api-reference/chat
 
 #### How to Use (TL;DR):
 1. Download extension (.xdll) and add to root Textractor directory
+	- Add any '.dll' files that come with the extension to the root Textractor directory as well.
 2. Add extension to Textractor at the right position (*after* text fixes extensions, *before* display extensions)
 3. Open Textractor.ini in a text editor, go to extension config section [GptApi-Translate], and set *ApiKey* config value to your OpenAI API key (which you can retrieve from your OpenAI account).
 4. Adjust other config values as desired: [Config Values](#config-values)
 	- Reference the [Tips](#tips) section for guidance on how to improve translation accuracy, reduce API costs, or reduce response times.
 
-#### How to Retrieve an OpenAPI API key:
+#### How to Retrieve an OpenAI API key:
 - You can create/retrieve your OpenAI API key through your OpenAI account.
 	- You can log into your OpenAI account here: https://platform.openai.com/login?launch
 - If you do not have an OpenAI account, you can register here: https://platform.openai.com/signup
@@ -51,11 +52,12 @@ https://platform.openai.com/docs/api-reference/chat
 ## How to Install
 1. Download the latest extension from Releases
     - https://github.com/voidpenguin-28/Textractor-ExtraExtensions/releases
-2. Extract the zipped contents and place the '.xdll' extension in the root directory of the Textractor app.
+2. Extract the zipped contents and place the '.xdll' extension, as well as any '.dll' files that may come with the extension, in the root directory of the Textractor app.
 	- Ensure that the chosen architecture matches the architecture of Textractor.
 		- If you are using the x86 version of Textractor, then use the x86 extension
 		- If you are using the x64 version of Textractor, then use the x64 extension
 	- ![Copy Example](img/copy-extension.png)
+	- As of >= 1.2.2 of this extension, several '.dll' files may come with the extension. These are dependencies that the extension relies on, thus they also need to be copied to the root directory of Textractor.
 3. Add the extension to Textractor
 	- An extension can be added by opening Textractor, pressing the "Extensions" button, right-clicking the extensions panel, then selecting 'Add extension'.
 		- Add the 'Textractor.GptApiTranslate.xdll' from Textractor's root directory.

@@ -21,8 +21,6 @@ public:
 
 	wstring getLastTranslationFromResponse(const wstring& responseMsg) const;
 private:
-	static const vector<wstring> LINE_SEPS;
-	static const wregex _transltSplitPattern;
-
-	vector<wstring> regSplit(const wstring& str, const wregex& pattern = _transltSplitPattern) const;
+	static const wstring LINE_SEP;
+	bool isTransLineStart(const wstring& str, size_t startIndex, size_t& newStartIndex) const;
 };

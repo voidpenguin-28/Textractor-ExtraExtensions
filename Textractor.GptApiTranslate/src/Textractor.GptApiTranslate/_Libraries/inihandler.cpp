@@ -26,15 +26,24 @@ size_t IniParser::findNextSection(const vector<wstring>& lines, size_t lineStart
 
 
 wstring IniParser::extractSectionName(const wstring& line) const {
-	return getMatch(line, _sectionPattern, 1);
+	wstring section = trimWhitespace(line);
+	if (line.empty()) return L"";
+
+	return section[0] == SECT_START_CH && section.back() == SECT_END_CH ? section : L"";
 }
 
 wstring IniParser::extractKeyName(const wstring& line) const {
-	return getMatch(line, _keyValPattern, 1);
+	size_t delimIndex = line.find(KEY_VAL_DELIM);
+	if (delimIndex == wstring::npos) return L"";
+
+	return trimWhitespace(line.substr(0, delimIndex));
 }
 
 wstring IniParser::extractKeyValue(const wstring& line) const {
-	return getMatch(line, _keyValPattern, 2);
+	size_t delimIndex = line.find(KEY_VAL_DELIM);
+	if (delimIndex == wstring::npos) return L"";
+
+	return trimWhitespace(line.substr(delimIndex + 1));
 }
 
 wstring IniParser::formatSection(wstring section) const {
@@ -50,12 +59,7 @@ wstring IniParser::formatSection(wstring section) const {
 
 // *** PRIVATE IniParser
 
-const wstring IniParser::SECT_START_CH = L"[";
-const wstring IniParser::SECT_END_CH = L"]";
 const wstring IniParser::MATCH_ANY = L"*";
-const wregex IniParser::_sectionPattern = wregex(L"^\\s{0,}(\\[.+\\])\\s{0,}$");
-const wregex IniParser::_keyValPattern = wregex(L"^\\s{0,}([^=]+)\\s{0,}=\\s{0,}(.{0,})\\s{0,}$");
-
 
 wstring IniParser::trimWhitespace(const wstring& str) const {
 	size_t first = str.find_first_not_of(L" \t\n\r");
@@ -80,12 +84,6 @@ size_t IniParser::findLineContaining(const vector<wstring>& lines, const wstring
 	}
 
 	return string::npos;
-}
-
-wstring IniParser::getMatch(const wstring& str, const wregex& pattern, size_t matchIndex) const {
-	wsmatch matches;
-
-	return regex_match(str, matches, pattern) ? matches[matchIndex].str() : L"";
 }
 
 
@@ -258,11 +256,51 @@ wstring IniContents::formatReadKeyValue(wstring value) const {
 		if (value[i] != escapeCh) continue;
 		nextCh = value[i + 1];
 
-		if (_escapePairs.find(nextCh) != _escapePairs.end())
+		if (nextCh == L'x') {
+			value = decodeEscapedUTF8Str(value);
+		}
+		else if (_escapePairs.find(nextCh) != _escapePairs.end()) {
 			replaceAndRemoveCh(value, i, _escapePairs.at(nextCh));
+		}
 	}
 
 	return value;
+}
+
+unsigned char IniContents::hexToByte(const string& hex) const {
+	unsigned int value = 0;
+	stringstream ss;
+	ss << std::hex << hex;
+	ss >> value;
+	return static_cast<unsigned char>(value);
+}
+
+wstring IniContents::decodeEscapedUTF8Str(const wstring& escaped) const {
+	try {
+		return StrConverter::convertToW(
+			decodeEscapedUTF8Str(StrConverter::convertFromW(escaped)));
+	}
+	catch (exception&) {
+		return escaped;
+	}
+}
+
+string IniContents::decodeEscapedUTF8Str(const string& escaped) const {
+	string result;
+
+	for (size_t i = 0; i < escaped.length(); ) {
+		if (escaped[i] == L'\\' && i + 3 < escaped.length() && escaped[i + 1] == L'x') {
+			string hex = escaped.substr(i + 2, 2);
+			result += hexToByte(hex);
+			i += 4;
+		}
+		else {
+			result += escaped[i];
+			++i;
+		}
+	}
+
+	return result;
 }
 
 void IniContents::replaceAndRemoveCh(wstring& value, size_t startIndex, wchar_t replaceCh) const {
@@ -330,8 +368,6 @@ void IniFileHandler::saveIni(IniContents& content, const string& newFilePath) co
 
 // *** PRIVATE IniFileHandler
 
-const wregex IniFileHandler::_lineDelimPattern(L"(?:\r\n|\r|\n)");
-
 void IniFileHandler::_saveIni(IniContents& content, const string& newFilePath) const {
 	wstring fileContents = content.stringCopy();
 	_saveIni(fileContents, newFilePath);
@@ -342,7 +378,7 @@ void IniFileHandler::_saveIni(const wstring& content, const string& newFilePath)
 	ofstream f(filePath);
 	if (!f.is_open()) throw runtime_error("Could not open ini file: " + filePath);
 
-	f << convertFromW(content);
+	f << StrConverter::convertFromW(content);
 	f.close();
 }
 
@@ -366,28 +402,33 @@ vector<wstring> IniFileHandler::getIniFileContents() const {
 	buffer << f.rdbuf();
 	f.close();
 
-	wstring contents = convertToW(buffer.str());
+	wstring contents = StrConverter::convertToW(buffer.str());
 	vector<wstring> lines = splitLines(contents);
 	return lines;
 }
 
 vector<wstring> IniFileHandler::splitLines(const wstring& text) const {
-	wsregex_token_iterator iterator(text.begin(), text.end(), _lineDelimPattern, -1);
-	wsregex_token_iterator end;
-	vector<wstring> lines;
+	static constexpr wchar_t CRG_RTN = L'\r';
+	static constexpr wchar_t NW_LN = L'\n';
 
-	while (iterator != end) {
-		lines.push_back(*iterator);
-		++iterator;
+	vector<wstring> lines{};
+	wstring line = L"";
+
+	for (size_t i = 0; i < text.length(); i++) {
+		if (text[i] == CRG_RTN) {
+			lines.push_back(line);
+			line = L"";
+		}
+		else if (text[i] == NW_LN) {
+			if (i > 0 && text[i - 1] == CRG_RTN) continue;
+			lines.push_back(line);
+			line = L"";
+		}
+		else {
+			line += text[i];
+		}
 	}
 
+	lines.push_back(line);
 	return lines;
-}
-
-wstring IniFileHandler::convertToW(const string& str) const {
-	return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
-}
-
-string IniFileHandler::convertFromW(const wstring& str) const {
-	return wstring_convert<codecvt_utf8_utf16<wchar_t>>().to_bytes(str);
 }

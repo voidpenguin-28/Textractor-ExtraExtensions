@@ -7,16 +7,13 @@
 #include "Text/GptMsgHandle.h"
 #include "Text/TranslationFormat.h"
 #include "Threading/ThreadFilter.h"
-#include <regex> 
 #include <string>
-#include <vector>
 using namespace std;
 
 
 class Translator {
 public:
-	~Translator() { }
-
+	virtual ~Translator() { }
 	virtual string translate(SentenceInfoWrapper& sentInfoWrapper, const wstring& text) const = 0;
 	virtual wstring translateW(SentenceInfoWrapper& sentInfoWrapper, const wstring& text) const = 0;
 	virtual string translate(SentenceInfoWrapper& sentInfoWrapper, const string& text) const = 0;

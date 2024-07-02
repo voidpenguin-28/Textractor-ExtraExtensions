@@ -110,5 +110,14 @@
     <ClInclude Include="Text\ApiMsgHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="_Libraries\regex\RE2Regex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_Libraries\regex\Regex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_Libraries\regex\StdLibRegex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

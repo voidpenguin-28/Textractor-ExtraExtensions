@@ -1,6 +1,7 @@
 
 #pragma once
 #include "Translator.h"
+#include "_Libraries/regex/RE2Regex.h"
 #include <memory>
 #include <string>
 using namespace std;
@@ -8,7 +9,8 @@ using namespace std;
 
 class ExtensionDepsContainer {
 public:
-	virtual  ConfigRetriever& getConfigRetriever() = 0;
+	virtual ~ExtensionDepsContainer() { }
+	virtual ConfigRetriever& getConfigRetriever() = 0;
 	virtual Logger& getLogger() = 0;
 	virtual Translator& getTranslator() = 0;
 };
@@ -33,7 +35,10 @@ public:
 			new CurlProcHttpClient([this]() { return _configRetriever->getConfig(false).customCurlPath; }));
 
 		_logger = unique_ptr<FileLogger>(new FileLogger(_logFileName));
-		_apiMsgHelper = unique_ptr<DefaultApiMsgHelper>(new DefaultApiMsgHelper(*_configRetriever));
+
+		_apiMsgHelper = unique_ptr<DefaultApiMsgHelper>(new DefaultApiMsgHelper(
+			*_configRetriever, [](const string& p) { return make_shared<RE2Regex>(p); }));
+
 		_gptApiCaller = unique_ptr<DefaultGptApiCaller>(
 			new DefaultGptApiCaller(*_httpClient, *_logger, *_apiMsgHelper));
 

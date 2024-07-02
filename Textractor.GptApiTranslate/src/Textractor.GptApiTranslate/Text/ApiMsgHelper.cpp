@@ -2,7 +2,6 @@
 #include "ApiMsgHelper.h"
 #include "../_Libraries/strhelper.h"
 #include "../Config/Common.h"
-#include <regex>
 
 const string DefaultApiMsgHelper::_defaultRequestTemplate = GPT_REQUEST_TEMPLATE;
 const string DefaultApiMsgHelper::_defaultResponseMsgPattern = GPT_RESPONSE_MSG_PATTERN;
@@ -86,11 +85,17 @@ string DefaultApiMsgHelper::formatUserMsg(const string& msg) const {
 }
 
 string DefaultApiMsgHelper::parseMessageFromResponse(const string& response, const string& pattern) const {
-	smatch match;
-	regex rgx(pattern);
-	if (!regex_search(response, match, rgx)) return "";
+	shared_ptr<Regex> regex = getOrSetRegex(pattern);
+	vector<string> captures = regex->findMatchCaptures(response);
 
-	string msg = StrHelper::replace<char>(match[1].str(), "\\\"", "\"");
+	string msg = StrHelper::replace<char>(captures[1], "\\\"", "\"");
 	msg = StrHelper::replace<char>(msg, "\\n", "\n");
 	return msg;
+}
+
+shared_ptr<Regex> DefaultApiMsgHelper::getOrSetRegex(const string& pattern) const {
+	if (_regexCache.find(pattern) != _regexCache.end()) return _regexCache.at(pattern);
+	shared_ptr<Regex> regex = _regexMap(pattern);
+	_regexCache[pattern] = regex;
+	return regex;
 }

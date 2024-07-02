@@ -8,7 +8,7 @@ using namespace std;
 
 class HttpClient {
 public:
-	~HttpClient() { }
+	virtual ~HttpClient() { }
 	static constexpr int DEFAULT_CONNECT_TIMEOUT_SECS = 10;
 	static constexpr int DEFAULT_NUM_RETRIES = 0;
 

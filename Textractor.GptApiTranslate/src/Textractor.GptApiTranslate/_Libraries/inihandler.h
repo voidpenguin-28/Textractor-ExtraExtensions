@@ -5,8 +5,8 @@
 #include <fstream>
 #include <functional>
 #include <mutex>
-#include <regex>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 using namespace std;
@@ -23,10 +23,8 @@ public:
 	wstring extractKeyValue(const wstring& line) const;
 	wstring formatSection(wstring section) const;
 private:
-	static const wstring SECT_START_CH, SECT_END_CH;
+	static constexpr wchar_t SECT_START_CH = L'[', SECT_END_CH = L']', KEY_VAL_DELIM = L'=';
 	static const wstring MATCH_ANY;
-	static const wregex _sectionPattern;
-	static const wregex _keyValPattern;
 
 	const function<wstring(const wstring&)> _sectionParser = [this](const wstring& s) { return extractSectionName(s); };
 	const function<wstring(const wstring&)> _keyNameParser = [this](const wstring& s) { return extractKeyName(s); };
@@ -35,7 +33,6 @@ private:
 	wstring trimWhitespace(const wstring& str) const;
 	size_t findLineContaining(const vector<wstring>& lines, const wstring& match,
 		const function<wstring(const wstring&)>& lineParser, size_t lineStart = 0, size_t lineEnd = UINT_MAX) const;
-	wstring getMatch(const wstring& str, const wregex& pattern, size_t matchIndex) const;
 };
 
 
@@ -73,6 +70,9 @@ private:
 
 	bool indexValid(size_t index) const;
 	wstring formatReadKeyValue(wstring value) const;
+	unsigned char hexToByte(const string& hex) const;
+	wstring decodeEscapedUTF8Str(const wstring& escaped) const;
+	string decodeEscapedUTF8Str(const string& escaped) const;
 	void replaceAndRemoveCh(wstring& value, size_t startIndex, wchar_t replaceCh) const;
 	wstring formatWriteKeyValue(wstring value) const;
 	void addNewKeyValue(const wstring& section, const wstring& key, const wstring& value);
@@ -90,7 +90,6 @@ public:
 	IniContents* readIni() const;
 	void saveIni(IniContents& content, const string& newFilePath = "") const;
 private:
-	static const wregex _lineDelimPattern;
 	const string _iniFilePath;
 	mutable mutex _mutex;
 
@@ -100,7 +99,16 @@ private:
 
 	vector<wstring> getIniFileContents() const;
 	vector<wstring> splitLines(const wstring& text) const;
-
-	wstring convertToW(const string& str) const;
-	string convertFromW(const wstring& str) const;
 };
+
+class StrConverter {
+public:
+	static wstring convertToW(const string& str) {
+		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
+	}
+
+	static string convertFromW(const wstring& str) {
+		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().to_bytes(str);
+	}
+};
+

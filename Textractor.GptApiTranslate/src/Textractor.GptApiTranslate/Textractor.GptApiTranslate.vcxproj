@@ -168,6 +168,9 @@
     <ClInclude Include="_Libraries\datetime.h" />
     <ClInclude Include="_Libraries\curlproc.h" />
     <ClInclude Include="_Libraries\inihandler.h" />
+    <ClInclude Include="_Libraries\regex\RE2Regex.h" />
+    <ClInclude Include="_Libraries\regex\Regex.h" />
+    <ClInclude Include="_Libraries\regex\StdLibRegex.h" />
     <ClInclude Include="_Libraries\strhelper.h" />
     <ClInclude Include="Text\TranslationFormat.h" />
     <ClInclude Include="Threading\ThreadFilter.h" />
