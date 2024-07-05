@@ -10,17 +10,24 @@ pair<bool, string> DefaultGptApiCaller::callCompletionApi(const string& model,
 	const string& sysMsg, const string& userMsg, bool contentOnly) const
 {
 	GptConfig config = _msgHelper.getConfig();
-	string request = _msgHelper.createRequestMsg(sysMsg, userMsg);
 
-	pair<bool, string> output = callCompletionApi(config, request);
-	string& response = output.second;
-	bool msgError, httpError = output.first;
-	string parsedResponse = _msgHelper.parseMessageFromResponse(response, msgError);
+	try {
+		string request = _msgHelper.createRequestMsg(sysMsg, userMsg);
 
-	bool anyError = httpError || msgError;
-	if (config.logRequest) writeToLog(request, response, anyError);
-	if (contentOnly) response = parsedResponse;
-	return pair<bool, string>(anyError, response);
+		pair<bool, string> output = callCompletionApi(config, request);
+		string& response = output.second;
+		bool msgError, httpError = output.first;
+		string parsedResponse = _msgHelper.parseMessageFromResponse(response, msgError);
+
+		bool anyError = httpError || msgError;
+		if (config.logRequest) writeToLog(request, response, anyError);
+		if (contentOnly) response = parsedResponse;
+		return pair<bool, string>(anyError, response);
+	}
+	catch (const exception& ex) {
+		if (config.logRequest) writeToLog(sysMsg + '\n' + userMsg, ex.what(), true);
+		throw;
+	}
 }
 
 
@@ -37,7 +44,7 @@ pair<bool, string> DefaultGptApiCaller::callCompletionApi(const GptConfig& confi
 		response = _httpClient.httpPost(config.url, request, 
 			config.httpHeaders, config.timeoutSecs, config.numRetries, callRetryCondition);
 	}
-	catch (exception& ex) {
+	catch (const exception& ex) {
 		response = ex.what();
 		httpError = true;
 	}

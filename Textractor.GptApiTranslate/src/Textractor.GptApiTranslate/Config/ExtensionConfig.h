@@ -8,6 +8,7 @@ using namespace std;
 
 struct ExtensionConfig {
 	enum FilterMode { Disabled = 0, Blacklist, Whitelist };
+	enum NameMappingMode { None, Name, NameAndGender };
 
 	bool disabled;
 	string url;
@@ -17,6 +18,7 @@ struct ExtensionConfig {
 	int numRetries;
 	wstring sysMsgPrefix;
 	wstring userMsgPrefix;
+	NameMappingMode nameMappingMode;
 	bool activeThreadOnly;
 	int skipConsoleAndClipboard;
 	bool useHistoryForNonActiveThreads;
@@ -38,16 +40,17 @@ struct ExtensionConfig {
 
 	ExtensionConfig(bool disabled_, string url_, string apiKey_, string model_, 
 		int timeoutSecs_, int numRetries_, wstring sysMsgPrefix_, wstring userMsgPrefix_, 
-		bool activeThreadOnly_, int skipConsoleAndClipboard_, bool useHistoryForNonActiveThreads_,
-		int msgHistoryCount_, int historySoftCharLimit_, int msgCharLimit_, bool skipAsciiText_, 
-		bool skipIfZeroWidthSpace_, bool showErrMsg_, const string& customRequestTemplate_,
-		const string& customResponseMsgRegex_, const string& customErrorMsgRegex_, const string& customHttpHeaders_,
+		NameMappingMode nameMappingMode_, bool activeThreadOnly_, int skipConsoleAndClipboard_, 
+		bool useHistoryForNonActiveThreads_, int msgHistoryCount_, int historySoftCharLimit_, 
+		int msgCharLimit_, bool skipAsciiText_, bool skipIfZeroWidthSpace_, bool showErrMsg_, 
+		const string& customRequestTemplate_, const string& customResponseMsgRegex_, 
+		const string& customErrorMsgRegex_, const string& customHttpHeaders_,
 		const FilterMode threadKeyFilterMode_, const wstring& threadKeyFilterList_, 
 		const wstring& threadKeyFilterListDelim_, string customCurlPath_, bool debugMode_)
 		: disabled(disabled_), url(url_), apiKey(apiKey_), model(model_), 
 			timeoutSecs(timeoutSecs_), numRetries(numRetries_), sysMsgPrefix(sysMsgPrefix_), 
-			userMsgPrefix(userMsgPrefix_), activeThreadOnly(activeThreadOnly_), 
-			skipConsoleAndClipboard(skipConsoleAndClipboard_),
+			userMsgPrefix(userMsgPrefix_), nameMappingMode(nameMappingMode_),
+			activeThreadOnly(activeThreadOnly_), skipConsoleAndClipboard(skipConsoleAndClipboard_),
 			useHistoryForNonActiveThreads(useHistoryForNonActiveThreads_), msgHistoryCount(msgHistoryCount_),
 			historySoftCharLimit(historySoftCharLimit_), msgCharLimit(msgCharLimit_), 
 			skipAsciiText(skipAsciiText_), skipIfZeroWidthSpace(skipIfZeroWidthSpace_),
@@ -62,7 +65,8 @@ static const ExtensionConfig DefaultConfig = ExtensionConfig(
 	false, "https://api.openai.com/v1/chat/completions", 
 	"", GPT_MODEL4_O, 10, 2,
 	L"Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines). However, only return the translation for the line that starts with '99:'.",
-	L"", true, 1, false, 3, 250, 300, true, true, true, "", "", "", "", 
+	L"", ExtensionConfig::NameMappingMode::None, true, 1, false, 
+	3, 250, 300, true, true, true, "", "", "", "", 
 	ExtensionConfig::FilterMode::Disabled, L"", L"|", "", false
 );
 
@@ -111,5 +115,7 @@ private:
 	wstring getValOrDef(IniContents& ini, const wstring& key, wstring defaultValue) const;
 	string getValOrDef(IniContents& ini, const wstring& key, string defaultValue) const;
 	int getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const;
+	template<typename T>
+	T getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const;
 	string regexFormat(string pattern) const;
 };

@@ -87,6 +87,7 @@ string DefaultApiMsgHelper::formatUserMsg(const string& msg) const {
 string DefaultApiMsgHelper::parseMessageFromResponse(const string& response, const string& pattern) const {
 	shared_ptr<Regex> regex = getOrSetRegex(pattern);
 	vector<string> captures = regex->findMatchCaptures(response);
+	if (captures.size() < 2) return "";
 
 	string msg = StrHelper::replace<char>(captures[1], "\\\"", "\"");
 	msg = StrHelper::replace<char>(msg, "\\n", "\n");

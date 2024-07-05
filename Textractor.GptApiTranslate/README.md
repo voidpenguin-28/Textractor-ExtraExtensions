@@ -14,6 +14,7 @@ This extention is highly configurable, allowing you to control features such as:
 5. Configurable timeout & retry logic for API network requests.
 6. Logging GPT API requests for tracing/debugging purposes.
 7. The capability to [use another API/endpoint](#how-to-integrate-custom-api-endpoints) similar to GPT (such as Google's Gemini), as of v1.2.
+8. As of v1.3: Auto-mapping the names (jp->romaji) and genders of characters, so that GPT assigns/translates them correctly. Reference documentation on the *NameMappingMode* config key for more details on how to integrate this feature.
 
 
 **Note that using the GPT API requires an API key, which much be retrieved from your OpenAI account. OpenAI does charge money for requests to their API.**
@@ -292,11 +293,45 @@ Here is the list of currently supported config values for this extension.
 		;;...omitted...
 		UserMsgPrefix=Here are the Japanese lines...
 		```
-10. **ActiveThreadOnly**: Indicates if only the current active/selected thread/hook should be translated.
+10. **NameMappingMode**: Provides to capability to auto-map character names (jp->romaji) and genders to the request system msg, to ensure that GPT assigns/translates them correctly.
+	- **This functionality is provided by the [VndbCharNameMapper](https://github.com/voidpenguin-28/Textractor-ExtraExtensions/tree/main/Textractor.VndbCharNameMapper) extension, which will need to be added/used alongside this extension.**
+	- Default value: '0' (no mappings applied).
+	- **How to use this feature:**
+		1. Download and add the latest *VndbCharNameMapper* extension to Textractor.
+			- Latest version can be found in releases: https://github.com/voidpenguin-28/Textractor-ExtraExtensions/releases
+			- In the Textractor extension list, the *VndbCharNameMapper* extension must be placed **before** the *GptApiTranslate* extension.
+		2. Open the Textractor ini config file (*Textractor.ini*), and go to the VndbCharNameMapper config section *[Textractor.VndbCharNameMapper]*. Then apply the following config changes.
+			- Set the **MappingMode** to 0. This ensures that te VndbCharNameMapper extension itself does not apply any mappings to the text, but will still retrieve/store/cache the name mappings.
+			- Set the **VnIds** config value to the correct visual novel. Reference [**VndbCharNameMapper**](https://github.com/voidpenguin-28/Textractor-ExtraExtensions/tree/main/Textractor.VndbCharNameMapper#config-values) documentation if more info on this config value is needed.
+		3. Go to the GptApiTranslate extension's ini config and set the **NameMappingMode** to the desired mode.
+	- Possible values:
+		- **0**: No mappings applied (feature disabled).
+		- **1**: Apply name mappings (no gender mappings).
+		- **2**: Apply name and gender mappings.
+	- Important notes:
+		- The VndbCharNameMapper extension must have the name 'Textractor.VndbCharNameMapper.xdll' for this feature to work.
+			- In other words, you cannot rename that extension to anything else.
+		- VndbCharNameMapper's config value *VnIds* is the only config value that has a direct impact on *GptApi-Translate's* functionality.
+			- For example, the *MinNameCharSize* config value has no impact on *GptApi-Translate*.
+		- Behind the scenes, this feature involves reading name/gender mappings from the 'Textractor.VndbCharNameMapper.ini' cache file.
+		- Note that the name/gender mappings are applied to **every single request to the GPT API**. In other words, this can significantly increase the amount of request data being sent, thus **potentially significantly increasing API costs & performance times.** 
+		- Here's an example of what data gets sent to GPT with this feature enabled.
+			```
+			NameMappingMode = 1
+			"Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines).
+			However, only return the translation for the line that starts with '99:'.
+			Use the following name mappings: 南=Minami; 磯下=Isoshita; 伊勢崎=Isezaki; シャーリー=Shirley; レイ=Rei; ジーン=Gene; ブランシェット=Blanchett; 宗多=Souta; 幽=Yuu; 相田=Aida; 葉子=Youko; 斎=Itsuki; 塚本=Tsukamoto; 千鳥=Chidori; 笛子=Fueko; 伊月=Izuki; 沙也加=Sayaka; あずさ=Azusa; 忍=Shinobu; 章二=Shouji; 紅緒=Benio; 貴宮=Atemiya; 本堂=Hondou; 樋口=Higuchi; "
+			
+			NameMappingMode = 2
+			"Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines).
+			However, only return the translation for the line that starts with '99:'.
+			Use the following name mappings, and gender mappings when provided: 山名=Yamana; トキ子=Tokiko (F); 楓=Kaede (F); 尚人=Naoto (M); 常葉=Tokiwa; 香苗=Kanae (F); みさき=Misaki (F); 八重樫=Yaegashi; 瑞希=Mizuki (F); 高屋敷=Takayashiki; 澄光=Sumi (F); 美湖=Miko (F); 西明寺=Saimyouji; 燕=Tsubame (F); 楢原=Narahara; 御堂=Midou; あやの=Ayano (F); 美森=Mimori (F); 椚=Kunugi; 留美=Rumi (F); 小春=Koharu (F); 衣坂=Isaka; さな=Sana (F); 姫川=Himekawa; 木ノ下=Kinoshita; 久我原=Kugahara; 文華=Fumika (F); かずみ=Kazumi (F); 白鍬=Shirakuwa; 堀内=Horiuchi; 陸=Riku; 純一=Jun'ichi (M); 秋山=Akiyama; 千尋=Chihiro (F); "
+			```
+11. **ActiveThreadOnly**: Indicates if only the current active/selected thread/hook should be translated.
 	- Default value: '1' (Active thread/hook only).
 	- If this value is set to 0, all threads/hooks will be translated.
 	- **Note that translating all threads/hooks will *significantly* increase API costs.**
-11. **SkipConsoleAndClipboard**: Allows you to exclude the Console and/or Clipboard threads from being translated.
+12. **SkipConsoleAndClipboard**: Allows you to exclude the Console and/or Clipboard threads from being translated.
 	- Default value: '1' (skip Console and Clipboard threads)
 	- Possible values:
 		- **0**: Do not skip Console nor Clipboard threads
@@ -304,14 +339,14 @@ Here is the list of currently supported config values for this extension.
 		- **2**: Skip the Console thread (but not the Clipboard thread)
 		- **3**: Skip the Clipboard thread (but not the Console thread)
 	- This setting applies regardless of the value of the *ActiveThreadOnly* config key.
-12. **UseHistoryForNonActiveThreads**: If all threads/hooks are being translated, then this value indicates whether or not to send in previous Japanese lines as context for non-active threads/hooks.
+13. **UseHistoryForNonActiveThreads**: If all threads/hooks are being translated, then this value indicates whether or not to send in previous Japanese lines as context for non-active threads/hooks.
 	- Default value: '0' (do not send past lines for non-active threads; only send current line to translate).
 	- Note that this config value only applies if the **ActiveThreadOnly** config value is set to '0'.
 		- The active thread/hook will always send previous lines as context (based on the *MsgHistoryCount* config value).
 	- The number of previous lines sent in for each thread/hook will depend on the config value **MsgHistoryCount**.
 	- The primary purpose of this config value is to potentially save on costs and reduce system load.
 		- It reduces cost since it significantly cuts down the amount of text sent to GPT for non-active threads/hooks.
-13. **HistorySoftCharLimit**: This will restrict the number of past lines passed into GPT, based on the total length of all lines combined.
+14. **HistorySoftCharLimit**: This will restrict the number of past lines passed into GPT, based on the total length of all lines combined.
 	- Default value: '250' (do not pass in anymore past lines if total lines length exceeds 250)
 	- Note that the length of the actual line to translate is included in this total.
 	- Here's an example. Let's say this config value is set to '100' and the **MsgHistoryCount** is set to '3'.
@@ -323,20 +358,20 @@ Here is the list of currently supported config values for this extension.
 		- However, in this case no past messages will be sent in (only the line at index '99' will be sent), since the current line's length exceeds the limit.
 	- The purpose of this config value is to reduce costs and improve performance in cases where there is a sequence of very long sentences (ex: paragraphs) back to back.
 		- The longer a sentence is, the more it will cost you and the longer it may take for GPT to process the request.
-14. **MsgCharLimit**: This is the hard limit on how long each Japanese line sent to GPT is capable of being.
+15. **MsgCharLimit**: This is the hard limit on how long each Japanese line sent to GPT is capable of being.
 	- Default value: '300' (no line can exceed 300 characters).
 	- Note that the limit applies to each line, not the total combined length of all lines.
 		- In other words, using the default config value as an example, the line at index '99' can be up to 300 chars, the lines at index '98' can be up to 300 chars, etc.
 	- If a line exceeds this limit, it will be truncated to match the limit. Characters are trimmed from the beginning of the string, not the end.
 		- Ex: If this config value is '10', then line 'ABCDEFGHIJKLMNOP' will be truncated to 'GHIJKLMNOP' before being sent to the GPT request.
-15. **SkipAsciiText**: A line will not be translated if it entirely consists of ASCII text (ex: 0-9, a-z, A-Z).
+16. **SkipAsciiText**: A line will not be translated if it entirely consists of ASCII text (ex: 0-9, a-z, A-Z).
 	- Default value: '1' (skip if all ASCII).
 	- In other words, the line will simply be left as is.
 	- If the line contains even a single non-ASCII character, then the request to GPT will be made.
 	- This is just a simple way to potentially reduce the number of GPT requests the extension makes (thus potentially saving on costs).
 		- If the line to translate is already in English, then there's no need to send it in to GPT to translate it.
 	- If this config value is '0', then the line will still be sent in to GPT, regardless if it is all ASCII.
-16. **SkipIfZeroWidthSpace**: A line will not be translated if it contains a zero-width space (unicode character: \x200B).
+17. **SkipIfZeroWidthSpace**: A line will not be translated if it contains a zero-width space (unicode character: \x200B).
 	- Default value: '1' (skip if contains zero-width space)
 	- To give context, you may notice that most translation extensions for Textractor will return both the Japanese and English lines in the same response.
 		- Behind the scenes, Textractor distinguishes b/w the Japanese line and the Engilsh line in the text by looking for a zero-width space character, which is used to separate the Japanese and English text from one another.
@@ -346,7 +381,7 @@ Here is the list of currently supported config values for this extension.
 		- If a previous extension already translated the current line, then this extension does not need to translate it.
 		- If no zero-width space is found, then it will be assumed that the line still needs to be translated and thus will be sent to GPT.
 	- If this config value is set to '0', then a line will be sent to GPT to translate regardless if a zero-width space was found.
-17. **ShowErrMsg**: If something goes wrong during the GPT API request, then return the request error message in the sentence.
+18. **ShowErrMsg**: If something goes wrong during the GPT API request, then return the request error message in the sentence.
 	- Default value: '1' (show error msg in sentence).
 	- Here's an example. Let's first show what a sentence for a successful request would look like:
 		```
@@ -363,7 +398,7 @@ Here is the list of currently supported config values for this extension.
 		- Therefore, the request will simply fail in the background.
 		- In these cases, only the Japanese line will be returned, no English line.
 		- Without any printed error messages, the only way you would be able to get insight into what went wrong would be to set the **DebugMode** config value to '1', and then take a look at the debug log.
-18. **CustomRequestTemplate**: Allows you to provide your own request data structure to send to the API endpoint.
+19. **CustomRequestTemplate**: Allows you to provide your own request data structure to send to the API endpoint.
 	- Default value: '' (blank)
 	- Any value you provide here will override the extension's default request template. If this value is blank, then the default request template will be used.
 	- **Important note: All double quotation marks must be escaped with a backslash. (aka: Instead of ", you must use \\"**)
@@ -389,7 +424,7 @@ Here is the list of currently supported config values for this extension.
 		{\"systemInstruction\":{\"role\":\"user\",\"parts\":[{\"text\":\"{1}\"}]},\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"{2}\"}]}]}
 		```
 		- The extension would fill in {1} with the system role message and {2} with the user role message.
-19. **CustomResponseMsgRegex**: Allows you to provide your own custom regex parsing logic to extract the output text from the API response.
+20. **CustomResponseMsgRegex**: Allows you to provide your own custom regex parsing logic to extract the output text from the API response.
 	- Default value: '' (blank)
 	- Any value you provide here will override the extension's response parsing logic. If this value is blank, then the default response parsing will be used.
 	- In most cases, setting this value won't be necessary. The reasons for wanting to use this are the same as the *CustomRequestTemplate* config value.
@@ -414,11 +449,11 @@ Here is the list of currently supported config values for this extension.
 		```
 		- API Response: *{"candidates":[{"content":{"parts":[{"text":"99: \\"You're so mean!\\""}],"role":"model"}}]}*
 		- Parsed Output: *99: "You're so mean!"*
-20. **CustomErrorMsgRegex**: Allows you to provide your own custom regex parsing logic to extract error output text from the API response.
+21. **CustomErrorMsgRegex**: Allows you to provide your own custom regex parsing logic to extract error output text from the API response.
 	- Default value: '' (blank)
 	- Any value you provide here will override the extension's error parsing logic. If this value is blank, then the default error parsing will be used.
 	- This is almost identical to the *CustomResponseMsgRegex* config value. However, many APIs such as GPT return a different JSON response structure when an error occurs, hence why distinct error parsing logic is used.
-21. **CustomHttpHeaders**:  Allows you to provide your own HTTP headers to send in the API request.
+22. **CustomHttpHeaders**:  Allows you to provide your own HTTP headers to send in the API request.
 	- Default value: '' (blank)
 	- If you provide a value, then the extension will only use the headers you provide (none of the ones it would use by default). If this value is blank, then the default headers will be used.
 	- Each header should be a key-value pair, where the key is the header name and the value is the header value.
@@ -433,13 +468,13 @@ Here is the list of currently supported config values for this extension.
 		CustomHttpHeaders=Content-Type: application/json | Authorization: Bearer {0}
 		```
 		- The extension will fill in {0} with the ApiKey.
-22. **ThreadKeyFilterMode**: Indicates the filter mode used by the config key "ThreadKeyFilterList"
+23. **ThreadKeyFilterMode**: Indicates the filter mode used by the config key "ThreadKeyFilterList"
 	- Default value: '0' (disabled)
 	- Supported Filter Modes:
 		- **0**: Disabled. No filtering will occur, regardless if the "ThreadKeyFilterList" config value is set.
 		- **1**: Blacklist mode. Any thread names or thread keys specified in the ThreadKeyFilterList will be excluded from making GPT requests.
 		- **2**: Whitelist mode. Only thread names or thread keys specified in the ThreadKeyFilterList will be making GPT requests.
-23. **ThreadKeyFilterList**: A list of thread names or thread keys to filter by.
+24. **ThreadKeyFilterList**: A list of thread names or thread keys to filter by.
 	- For info on what a "ThreadKey" is, reference the following Notes section:
 		- https://github.com/voidpenguin-28/Textractor-ExtraExtensions/tree/main/Textractor.TextLogger#notes
 	- Note that filtering related config values are usually only relevant when config key **ActiveThreadOnly** is set to '0'.
@@ -448,10 +483,10 @@ Here is the list of currently supported config values for this extension.
 		- In other words, if thread name "GetGlyphOutlineA" is included in the list, then all thread keys that full under that thread name would be automatically included.
 	- Each thread name/key must be separated by the separator/delimiter specified in the "ThreadKeyFilterListDelim" config value.
 		-Ex: If "ThreadKeyFilterListDelim" is set to '|', then the 3 threads can be added to the filter list like so: '*GetGlyphOutlineA-1|GetCharABCWidthsA|GetGlyphOutlineA-2*'
-24. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
+25. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
 	- Default value: '|'
 	- If you changed this value to ';', then you would have to define the filter list like so: '*GetGlyphOutlineA-1;GetCharABCWidthsA;GetGlyphOutlineA-2*'
-25. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
+26. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
 	- Default value: '' (blank value indicates to use system curl path)
 	- As previously stated, curl is necessary for this extension to perform network requests.
 	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
@@ -467,7 +502,7 @@ Here is the list of currently supported config values for this extension.
 			CustomCurlPath=C:\\curl-win\\
 			;;...omitted...
 			```
-26. **DebugMode**: Allows you to log GPT request and response data to a log file.
+27. **DebugMode**: Allows you to log GPT request and response data to a log file.
 	- Default value: '0' (do not log any data to file)
 	- Request/response data will be logged to file if this config value is set to '1'.
 	- The log file will be called "gpt-request-log.txt" and will be located in the root directory of Textractor.
@@ -531,6 +566,7 @@ TimeoutSecs=10
 NumRetries=2
 SysMsgPrefix=Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines). However, only return the translation for the line that starts with '99:'.
 UserMsgPrefix=
+NameMappingMode=0
 ActiveThreadOnly=1
 SkipConsoleAndClipboard=1
 UseHistoryForNonActiveThreads=0

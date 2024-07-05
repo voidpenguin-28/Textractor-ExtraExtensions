@@ -27,11 +27,11 @@ wstring GptApiTranslator::translateW(SentenceInfoWrapper& sentInfoWrapper, const
 	if (!meetsExecutionRequirements(sentInfoWrapper, text, config)) return NO_TRNS;
 	if (!addJpTextToHistory(sentInfoWrapper, text, config)) return NO_TRNS;
 
-	string sysMsg = createGptSysMsg(config);
-	string userMsg = createGptUserMsg(sentInfoWrapper, config);
+	string sysMsg = StrHelper::convertFromW(_sysMsgCreator.createMsg(config, sentInfoWrapper));
+	string userMsg = StrHelper::convertFromW(_userMsgCreator.createMsg(config, sentInfoWrapper));
 	wstring translation = callGptApi(config, sysMsg, userMsg);
 
-	translation = _gptMsgHandler.getLastTranslationFromResponse(translation);
+	translation = _gptLineParser.parseLastLine(translation);
 	return _formatter.formatTranslation(translation);
 }
 
@@ -97,22 +97,6 @@ bool GptApiTranslator::addJpTextToHistory(SentenceInfoWrapper& sentInfoWrapper,
 	}
 
 	return true;
-}
-
-string GptApiTranslator::createGptSysMsg(const ExtensionConfig& config) const {
-	return StrHelper::convertFromW(config.sysMsgPrefix);
-}
-
-string GptApiTranslator::createGptUserMsg(
-	SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const
-{
-	int msgHistCount = !config.useHistoryForNonActiveThreads && !sentInfoWrapper.isActiveThread() ? 0 : config.msgHistoryCount;
-	vector<wstring> msgHist = _msgHistTracker.getFromHistory(sentInfoWrapper, msgHistCount + 1);
-
-	wstring userMsg = config.userMsgPrefix + L"\n";
-	userMsg += _gptMsgHandler.createMsgFromHistory(msgHist, config.msgCharLimit, config.historySoftCharLimit);
-
-	return StrHelper::convertFromW(StrHelper::rtrim<wchar_t>(userMsg, L"\n"));
 }
 
 wstring GptApiTranslator::callGptApi(ExtensionConfig& config, const string& sysMsg, const string& userMsg) const {

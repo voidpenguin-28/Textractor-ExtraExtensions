@@ -144,7 +144,6 @@
     <ClCompile Include="Config\ExtensionConfig.cpp" />
     <ClCompile Include="Network\GptApiCaller.cpp" />
     <ClCompile Include="Text\ApiMsgHelper.cpp" />
-    <ClCompile Include="Text\GptMsgHandle.cpp" />
     <ClCompile Include="Translator.cpp" />
     <ClCompile Include="History\MsgHistoryTrack.cpp" />
     <ClCompile Include="ExtensionImpl.cpp" />
@@ -158,9 +157,17 @@
     <ClInclude Include="Config\ExtensionConfig.h" />
     <ClInclude Include="ExtensionDepsContainer.h" />
     <ClInclude Include="History\MultiThreadMsgHistoryTrack.h" />
+    <ClInclude Include="NameMapping\CharMappings.h" />
+    <ClInclude Include="NameMapping\GenderStrMapper.h" />
+    <ClInclude Include="NameMapping\NameRetriever.h" />
+    <ClInclude Include="NameMapping\ProcessNameRetriever.h" />
+    <ClInclude Include="NameMapping\VnIdsRetriever.h" />
     <ClInclude Include="Network\GptApiCaller.h" />
     <ClInclude Include="Text\ApiMsgHelper.h" />
-    <ClInclude Include="Text\GptMsgHandle.h" />
+    <ClInclude Include="Text\GptMsgCreator.h" />
+    <ClInclude Include="Text\GptSysMsgCreator.h" />
+    <ClInclude Include="Text\GptUserMsgCreator.h" />
+    <ClInclude Include="Text\GptLineParser.h" />
     <ClInclude Include="Translator.h" />
     <ClInclude Include="Network\HttpClient.h" />
     <ClInclude Include="Logger.h" />
@@ -176,6 +183,7 @@
     <ClInclude Include="Threading\ThreadFilter.h" />
     <ClInclude Include="Threading\ThreadKeyGenerator.h" />
     <ClInclude Include="Threading\ThreadTracker.h" />
+    <ClInclude Include="_Libraries\winmsg.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

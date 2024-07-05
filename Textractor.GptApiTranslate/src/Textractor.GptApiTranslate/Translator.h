@@ -4,7 +4,9 @@
 #include "Config/ExtensionConfig.h"
 #include "History/MultiThreadMsgHistoryTrack.h"
 #include "Network/GptApiCaller.h"
-#include "Text/GptMsgHandle.h"
+#include "Text/GptSysMsgCreator.h"
+#include "Text/GptUserMsgCreator.h"
+#include "Text/GptLineParser.h"
 #include "Text/TranslationFormat.h"
 #include "Threading/ThreadFilter.h"
 #include <string>
@@ -25,9 +27,11 @@ class GptApiTranslator : public Translator {
 public:
 	GptApiTranslator(const ConfigRetriever& configRetriever, const ThreadFilter& threadFilter,
 		MultiThreadMsgHistoryTracker& msgHistTracker, const GptApiCaller& gptApiCaller,
-		const GptMsgHandler& gptMsgHandler, const TranslationFormatter& formatter) 
+		const TranslationFormatter& formatter, GptMsgCreator& sysMsgCreator, 
+		GptMsgCreator& userMsgCreator, const GptLineParser& gptLineParser)
 		: _configRetriever(configRetriever), _threadFilter(threadFilter), _msgHistTracker(msgHistTracker),
-			_gptApiCaller(gptApiCaller), _gptMsgHandler(gptMsgHandler), _formatter(formatter) { }
+			_gptApiCaller(gptApiCaller), _formatter(formatter), _sysMsgCreator(sysMsgCreator),
+			_userMsgCreator(userMsgCreator), _gptLineParser(gptLineParser) { }
 
 	string translate(SentenceInfoWrapper& sentInfoWrapper, const wstring& text) const override;
 	wstring translateW(SentenceInfoWrapper& sentInfoWrapper, const wstring& text) const override;
@@ -39,8 +43,10 @@ private:
 	const ThreadFilter& _threadFilter;
 	MultiThreadMsgHistoryTracker& _msgHistTracker;
 	const GptApiCaller& _gptApiCaller;
-	const GptMsgHandler& _gptMsgHandler;
 	const TranslationFormatter& _formatter;
+	GptMsgCreator& _sysMsgCreator;
+	GptMsgCreator& _userMsgCreator;
+	const GptLineParser& _gptLineParser;
 
 	bool meetsExecutionRequirements(SentenceInfoWrapper& sentInfoWrapper,
 		const wstring& text, const ExtensionConfig& config) const;
@@ -49,7 +55,5 @@ private:
 	bool isAllAscii(const wstring& str) const;
 	bool addJpTextToHistory(SentenceInfoWrapper& sentInfoWrapper, 
 		const wstring& text, const ExtensionConfig& config) const;
-	string createGptSysMsg(const ExtensionConfig& config) const;
-	string createGptUserMsg(SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const;
 	wstring callGptApi(ExtensionConfig& config, const string& sysMsg, const string& userMsg) const;
 };

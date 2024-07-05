@@ -1,8 +1,8 @@
 
 #include "ExtensionConfig.h"
 #include "../_Libraries/strhelper.h"
-#include <regex>
 using FilterMode = ExtensionConfig::FilterMode;
+using NameMappingMode = ExtensionConfig::NameMappingMode;
 
 
 const wstring DISABLED_KEY = L"Disabled";
@@ -13,6 +13,7 @@ const wstring TIMEOUT_SECS_KEY = L"TimeoutSecs";
 const wstring NUM_RETRIES_KEY = L"NumRetries";
 const wstring SYS_MSG_PREFIX_KEY = L"SysMsgPrefix";
 const wstring USER_MSG_PREFIX_KEY = L"UserMsgPrefix";
+const wstring NAME_MAPPING_MODE_KEY = L"NameMappingMode";
 const wstring ACTIVE_THREAD_ONLY_KEY = L"ActiveThreadOnly";
 const wstring SKIP_CONSOLE_AND_CLIPBOARD_KEY = L"SkipConsoleAndClipboard";
 const wstring USE_HIST_FOR_NONACTIVE_THREADS_KEY = L"UseHistoryForNonActiveThreads";
@@ -66,6 +67,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	changed |= setValue(*ini, USE_HIST_FOR_NONACTIVE_THREADS_KEY, config.useHistoryForNonActiveThreads, overrideIfExists);
 	changed |= setValue(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, config.skipConsoleAndClipboard, overrideIfExists);
 	changed |= setValue(*ini, ACTIVE_THREAD_ONLY_KEY, config.activeThreadOnly, overrideIfExists);
+	changed |= setValue(*ini, NAME_MAPPING_MODE_KEY, config.nameMappingMode, overrideIfExists);
 	changed |= setValue(*ini, USER_MSG_PREFIX_KEY, config.userMsgPrefix, overrideIfExists);
 	changed |= setValue(*ini, SYS_MSG_PREFIX_KEY, config.sysMsgPrefix, overrideIfExists);
 	changed |= setValue(*ini, NUM_RETRIES_KEY, config.numRetries, overrideIfExists);
@@ -93,6 +95,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, NUM_RETRIES_KEY, defaultConfig.numRetries),
 		getValOrDef(*ini, SYS_MSG_PREFIX_KEY, defaultConfig.sysMsgPrefix),
 		getValOrDef(*ini, USER_MSG_PREFIX_KEY, defaultConfig.userMsgPrefix),
+		getValOrDef<NameMappingMode>(*ini, NAME_MAPPING_MODE_KEY, defaultConfig.nameMappingMode),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, defaultConfig.activeThreadOnly),
 		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, USE_HIST_FOR_NONACTIVE_THREADS_KEY, defaultConfig.useHistoryForNonActiveThreads),
@@ -106,7 +109,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		regexFormat(getValOrDef(*ini, CUSTOM_RESPONSE_MSG_REGEX_KEY, defaultConfig.customResponseMsgRegex)),
 		regexFormat(getValOrDef(*ini, CUSTOM_ERROR_MSG_REGEX_KEY, defaultConfig.customErrorMsgRegex)),
 		getValOrDef(*ini, CUSTOM_HTTP_HEADERS_KEY, defaultConfig.customHttpHeaders),
-		static_cast<FilterMode>(getValOrDef(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode)),
+		getValOrDef<FilterMode>(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_KEY, defaultConfig.threadKeyFilterList),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_DELIM_KEY, defaultConfig.threadKeyFilterListDelim),
 		getValOrDef(*ini, CUSTOM_CURL_PATH_KEY, defaultConfig.customCurlPath),
@@ -154,9 +157,15 @@ int IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int de
 	return ini.getValue(_iniSectionName, key, defaultValue);
 }
 
+template<typename T>
+T IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
+	return static_cast<T>(getValOrDef(ini, key, defaultValue));
+}
+
 string IniConfigRetriever::regexFormat(string pattern) const {
-	static const regex curlyBracketsPattern("\\{(\\d+), \\}");
-	if (pattern.empty()) return pattern;
-	pattern = regex_replace(pattern, curlyBracketsPattern, "{$1,}");
+	static const string _badSpaceBracketPattern = ", }";
+	static const string _goodSpaceBracketPattern = ",}";
+
+	pattern = StrHelper::replace<char>(pattern, _badSpaceBracketPattern, _goodSpaceBracketPattern);
 	return pattern;
 }

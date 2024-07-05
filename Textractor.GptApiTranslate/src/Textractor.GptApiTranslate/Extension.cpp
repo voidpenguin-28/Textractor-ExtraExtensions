@@ -1,4 +1,5 @@
 
+#include "_Libraries/winmsg.h"
 #include "Extension.h"
 #include "ExtensionDepsContainer.h"
 #include <string>
@@ -43,14 +44,19 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 */
 bool ProcessSentence(std::wstring& sentence, SentenceInfo sentenceInfo)
 {
-	//if (!sentenceInfo["current select"]) return false;
+	try {
+		SentenceInfoWrapper sentInfoWrapper(sentenceInfo);
+		wstring translation = _deps->getTranslator().translateW(sentInfoWrapper, sentence);
+		if (translation.empty()) return false;
 
-	SentenceInfoWrapper sentInfoWrapper(sentenceInfo);
-	wstring translation = _deps->getTranslator().translateW(sentInfoWrapper, sentence);
-	if (translation.empty()) return false;
-
-	applyTranslationToSentence(sentence, translation);
-	return true;
+		applyTranslationToSentence(sentence, translation);
+		return true;
+	}
+	catch (const exception& ex) {
+		wstring extId = _deps->getIdentifier();
+		showErrorMessage(ex.what(), StrHelper::convertFromW(extId));
+		return false;
+	}
 }
 
 void applyTranslationToSentence(wstring& sentence, const wstring& translation) {

@@ -39,9 +39,6 @@
     <ClCompile Include="Text\TranslationFormat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Text\GptMsgHandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Network\GptApiCaller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -72,9 +69,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Text\TranslationFormat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Text\GptMsgHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="_Libraries\strhelper.h">
@@ -117,6 +111,36 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="_Libraries\regex\StdLibRegex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NameMapping\ProcessNameRetriever.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NameMapping\VnIdsRetriever.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NameMapping\CharMappings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NameMapping\GenderStrMapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text\GptUserMsgCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text\GptSysMsgCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text\GptMsgCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text\GptLineParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NameMapping\NameRetriever.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_Libraries\winmsg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
