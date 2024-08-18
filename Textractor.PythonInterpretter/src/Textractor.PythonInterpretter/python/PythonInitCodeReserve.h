@@ -1,5 +1,6 @@
 
 #pragma once
+#include "../Libraries/strhelper.h"
 #include "PathFormatter.h"
 #include "WinApiHelper.h"
 #include <cctype>
@@ -67,34 +68,36 @@ public:
     }
 
     string createStartCmd(const string& id, const CmdPars& pars) const override {
+        static const string commandTemplate = 
+            R"(cmd /C ""{0}python" "{1}" "{2}" "{3}" "{4}" "{5}" "{6}" 2>> "{7}"")";
+
         string mainScriptPath = getMainScriptPath(id);
         string logFilePath = getLogFilePath(id);
         string initFatalLogFilePath = getInitFatalLogFilePath(id);
         int pyLogLevel = toPyLogLevel(pars.logLevel);
 
-        return "cmd /C \"\"" 
-            + _customPythonPath + "python\" "
-            + quoteWrap(mainScriptPath) + " "
-            + quoteWrap(pars.rootName) + " "
-            + quoteWrap(to_string(pars.bufferSize)) + " "
-            + quoteWrap(to_string(pars.showLogConsole)) + " "
-            + quoteWrap(to_string(pyLogLevel)) + " "
-            + quoteWrap(logFilePath)
-            + " 2>> \"" + initFatalLogFilePath + "\"\"";
+        return StrHelper::format(commandTemplate, { 
+            _customPythonPath, 
+            mainScriptPath, pars.rootName, to_string(pars.bufferSize), 
+            to_string(pars.showLogConsole), to_string(pyLogLevel), logFilePath,
+            initFatalLogFilePath 
+        });
     }
     
     string createCmdPiperStartCmd(const string& id, const size_t bufferSizeOverride = 0) const override {
-        string command = "___piper_manager.start_piper('" + id + "'";
-        if (bufferSizeOverride > 0) command += ", " + bufferSizeOverride;
-        command += ")";
+        static const string commandTemplate = "___piper_manager.start_piper({0})";
+        
+        vector<string> pyPars { quoteWrap(id, true) };
+        if (bufferSizeOverride > 0) pyPars.push_back(to_string(bufferSizeOverride));
 
-        return command;
+        return StrHelper::format(commandTemplate, { StrHelper::join<char>(", ", pyPars) });
     }
 
     string createSetLogLevelCmd(const string& id, Logger::Level logLevel) const override {
-        static const string command = "main_logger.setLevel({0})";
+        static const string commandTemplate = "main_logger.setLevel({0})";
         int pyLogLevel = toPyLogLevel(logLevel);
-        return WinApiHelper::replace(command, "{0}", to_string(pyLogLevel));
+
+        return StrHelper::format(commandTemplate, { to_string(pyLogLevel) });
     }
 
     vector<string> getRequiredPipPackages() const override {
@@ -102,14 +105,15 @@ public:
     }
 private:
     DefaultPathFormatter _pathFormatter;
+    const pair<string, string> _placeholderWrapper = pair<string, string>("{{", "}}");
     const string _managerPipeId = ManagerPipeId;
     const vector<string> _requiredPipPackages = { "pypiwin32" };
     const string _scriptDirPath;
     const string _logDirPath;
     const string _customPythonPath;
 
-    string quoteWrap(const string& str) const {
-        return "\"" + str + "\"";
+    string quoteWrap(const string& str, bool singleQuotes = false) const {
+        return singleQuotes ? ("'" + str + "'") : ('"' + str + '"');
     }
 
     int toPyLogLevel(Logger::Level logLevel) const {
@@ -710,10 +714,9 @@ class LoggerWriter: #{
 
 )";
         static const string _initPythonTemplateFull = _initPythonTemplate1 + _initPythonTemplate2;
-        string initPython = WinApiHelper::replace(_initPythonTemplateFull, "{{1}}", PyNoData);
-        initPython = WinApiHelper::replace(initPython, "{{2}}", _managerPipeId);
-        initPython = WinApiHelper::replace(initPython, "{{3}}", StopCmd);
-        initPython = WinApiHelper::replace(initPython, "{{4}}", ForceStopCmd);
+        string initPython = StrHelper::format(_initPythonTemplateFull,
+            { PyNoData, _managerPipeId, StopCmd, ForceStopCmd }, 1, _placeholderWrapper);
+
         return initPython;
     }
 
@@ -756,6 +759,6 @@ if __name__ == '__main__': #{
 )";
 
         string moduleName = idToModuleName(id);
-        return WinApiHelper::replace(_mainExecCode, "{{1}}", moduleName);
+        return StrHelper::format(_mainExecCode, { moduleName }, 1, _placeholderWrapper);
     }
 };

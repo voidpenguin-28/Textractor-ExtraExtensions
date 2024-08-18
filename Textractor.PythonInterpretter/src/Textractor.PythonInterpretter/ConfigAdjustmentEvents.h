@@ -1,9 +1,9 @@
 
 #pragma once
-#include "environment/FileTracker.h"
+#include "Libraries/FileTracker.h"
+#include "Libraries/Locker.h"
 #include "logging/LoggerBase.h"
 #include "Libraries/winmsg.h"
-#include "python/Locker.h"
 #include "ExtensionConfig.h"
 #include "ScriptManager.h"
 #include <chrono>
@@ -62,17 +62,23 @@ private:
 
 class DefaultConfigAdjustmentEvents : public ConfigAdjustmentEvents {
 public:
-	DefaultConfigAdjustmentEvents(const string& moduleName, ScriptManager& scriptManager, 
-		FileTracker& fileTracker, const Logger& logger, vector<reference_wrapper<Logger>>& trackedLoggers)
+	DefaultConfigAdjustmentEvents(const string& moduleName, const ExtensionConfig& initConfig, 
+		ScriptManager& scriptManager, FileTracker& fileTracker, const Logger& logger, 
+		vector<reference_wrapper<Logger>>& trackedLoggers)
 		: _moduleName(moduleName), _scriptManager(scriptManager), _fileTracker(fileTracker), 
-			_logger(logger), _trackedLoggers(trackedLoggers) { }
+			_logger(logger), _trackedLoggers(trackedLoggers) 
+	{
+		_lastScriptPath = initConfig.scriptPath;
+		_scriptLastModEpochs = getDateLastModifiedEpochs(initConfig);
+		_lastLogLevel = initConfig.logLevel;
+	}
 
 	void applyConfigAdjustments(const ExtensionConfig& config) override {
-		_locker.tryLock([this, &config]() { applyConfigAdjustmentsBase(config); });
+		adjustLogLevels(config);
+		reloadScriptIfChanged(config);
+		reloadScriptIfModified(config);
 	}
 private:
-	const string NO_STR = "NULL";
-
 	const string _moduleName;
 	ScriptManager& _scriptManager;
 	FileTracker& _fileTracker;
@@ -80,38 +86,45 @@ private:
 	vector<reference_wrapper<Logger>> _trackedLoggers;
 	BasicLocker _locker;
 
-	string _lastScriptPath = NO_STR;
-	int64_t _scriptLastModEpochs = 0;
-
-	void applyConfigAdjustmentsBase(const ExtensionConfig& config) {
-		adjustLogLevels(config);
-		reloadScriptIfChanged(config);
-		reloadScriptIfModified(config);
-	}
+	string _lastScriptPath;
+	int64_t _scriptLastModEpochs;
+	Logger::Level _lastLogLevel;
 
 	void reloadScriptIfChanged(const ExtensionConfig& config) {
-		if (_lastScriptPath == NO_STR) _lastScriptPath = config.scriptPath;
-		
-		if (_lastScriptPath != config.scriptPath 
-			&& _scriptManager.getScriptPath() != config.scriptPath)
+		if (_lastScriptPath == config.scriptPath) return;
+		_locker.lock([this, &config]() { reloadScriptDueToChanged(config); });
+	}
+
+	void reloadScriptDueToChanged(const ExtensionConfig& config) {
+		if (_lastScriptPath == config.scriptPath) return;
+		_lastScriptPath = config.scriptPath;
+
+		if (_scriptManager.getScriptPath() != config.scriptPath)
 		{
 			reloadScript(config);
-			_scriptLastModEpochs = 0;
+			_scriptLastModEpochs = getDateLastModifiedEpochs(config);
 		}
-
-		_lastScriptPath = config.scriptPath;
 	}
 
 	void reloadScriptIfModified(const ExtensionConfig& config) {
 		if (!config.reloadOnScriptModified) return;
-		int64_t currScriptLastModEpochs = _fileTracker.getDateLastModifiedEpochs(config.scriptPath);
+		int64_t currScriptLastModEpochs = getDateLastModifiedEpochs(config);
 		if (currScriptLastModEpochs == 0) return;
-		if (_scriptLastModEpochs == 0) _scriptLastModEpochs = currScriptLastModEpochs;
 
-		if (_scriptLastModEpochs != currScriptLastModEpochs) {
-			_scriptLastModEpochs = _fileTracker.getDateLastModifiedEpochs(config.scriptPath);
-			reloadScript(config);
-		}
+		_locker.lock([this, &config]() { reloadScriptDueToModified(config); });
+	}
+
+	void reloadScriptDueToModified(const ExtensionConfig& config) {
+		int64_t currScriptLastModEpochs = getDateLastModifiedEpochs(config);
+		if (currScriptLastModEpochs == 0) return;
+		if (_scriptLastModEpochs == currScriptLastModEpochs) return;
+
+		_scriptLastModEpochs = currScriptLastModEpochs;
+		reloadScript(config);
+	}
+
+	int64_t getDateLastModifiedEpochs(const ExtensionConfig& config) {
+		return _fileTracker.getDateLastModifiedEpochs(config.scriptPath);
 	}
 
 	void reloadScript(const ExtensionConfig& config) {
@@ -129,6 +142,16 @@ private:
 		else {
 			_logger.logInfo("No python script was loaded due to an empty script path.");
 		}
+	}
+
+	void adjustLogLevelsIfChanged(const ExtensionConfig& config) {
+		if (_lastLogLevel == config.logLevel) return;
+		_locker.lock([this, &config]() { adjustLogLevelsDueToChanged(config); });
+	}
+
+	void adjustLogLevelsDueToChanged(const ExtensionConfig& config) {
+		if (_lastLogLevel == config.logLevel) return;
+		adjustLogLevels(config);
 	}
 
 	void adjustLogLevels(const ExtensionConfig& config) {

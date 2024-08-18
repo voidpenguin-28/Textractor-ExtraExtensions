@@ -4,15 +4,15 @@
 #include <vector>
 using namespace std;
 
-class StringHelper {
+class KeyValSplitter {
 public:
-	virtual ~StringHelper() { }
+	virtual ~KeyValSplitter() { }
 	virtual vector<pair<string, string>> splitToKeyVals(
 		const string& vars, const string varsDelim, const string& keyValDelim = "=") = 0;
 };
 
 
-class DefaultStringHelper : public StringHelper {
+class DefaultKeyValSplitter : public KeyValSplitter {
 public:
 	virtual vector<pair<string, string>> splitToKeyVals(
 		const string& vars, const string varsDelim, const string& keyValDelim = "=") override

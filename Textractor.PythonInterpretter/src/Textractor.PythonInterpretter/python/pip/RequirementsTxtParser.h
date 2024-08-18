@@ -1,6 +1,6 @@
 
 #pragma once
-#include <fstream>
+#include "../../Libraries/strhelper.h"
 #include <string>
 #include <vector>
 using namespace std;
@@ -13,7 +13,7 @@ public:
 };
 
 
-class RegexRequirementsTxtParser : public RequirementsTxtParser {
+class DefaultRequirementsTxtParser : public RequirementsTxtParser {
 public:
 	vector<string> getPackageNames(const string& reqsTxtFilePath) override {
 		ifstream f(reqsTxtFilePath);
@@ -21,7 +21,7 @@ public:
 		string line, packageName;
 
 		while (getline(f, line)) {
-			packageName = formatPackageName(packageName);
+			packageName = formatPackageName(line);
 			if (!isValidPackageName(packageName)) continue;
 			packages.push_back(packageName);
 		}
@@ -29,22 +29,14 @@ public:
 		return packages;
 	}
 private:
+	const string SPACE = " ";
 	unordered_map<string, string> _customPackageToModuleMap = {
 		{ "pypiwin32", "win32file" }
 	};
-
+	
 	string formatPackageName(string packageName) {
-		packageName = trimSpace(packageName);
-		return WinApiHelper::replace(packageName, "-", "_");
-	}
-
-	string trimSpace(string str) {
-		while (!str.empty() && str[0] == ' ')
-			str = str.substr(1);
-		while (!str.empty() && str.back() == ' ')
-			str = str.substr(0, str.length() - 1);
-
-		return str;
+		packageName = StrHelper::trim<char>(packageName, SPACE);
+		return StrHelper::replace<char>(packageName, "-", "_");
 	}
 
 	bool isValidPackageName(const string& packageName) {

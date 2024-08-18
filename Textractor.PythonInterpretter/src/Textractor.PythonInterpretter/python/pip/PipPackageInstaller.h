@@ -1,5 +1,6 @@
 
 #pragma once
+#include "../../Libraries/strhelper.h"
 #include "../../logging/LoggerBase.h"
 #include "../ProcessManager.h"
 #include "../WinApiHelper.h"
@@ -56,7 +57,7 @@ public:
 
 	bool install(const vector<string>& packageNames) override {
 		if (packageNames.empty()) return true;
-		_logger.logInfo("Installing the following pip packages: " + WinApiHelper::join(", ", packageNames));
+		_logger.logInfo("Installing the following pip packages: " + StrHelper::join<char>(", ", packageNames));
 		string cmd = _cmdStrBuilder.createInstallCmd(packageNames);
 		return installFromCommand(cmd);
 	}

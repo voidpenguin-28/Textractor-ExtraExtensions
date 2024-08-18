@@ -145,12 +145,23 @@
     <ClCompile Include="ExtensionConfig.cpp" />
     <ClCompile Include="ExtensionImpl.cpp" />
     <ClCompile Include="Libraries\inihandler.cpp" />
-    <ClCompile Include="StringHelper.h" />
+    <ClCompile Include="KeyValSplitter.h" />
     <ClCompile Include="ThreadIdGenerator.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="python\Locker.h" />
-    <ClInclude Include="environment\FileTracker.h" />
+    <ClInclude Include="containers\LoggerFactory.h" />
+    <ClInclude Include="ExtExecRequirements.h" />
+    <ClInclude Include="File\FileDeleter.h" />
+    <ClInclude Include="File\FileReader.h" />
+    <ClInclude Include="File\FileTruncater.h" />
+    <ClInclude Include="File\Writer\FileWriter.h" />
+    <ClInclude Include="File\Writer\FireAndForgetFileWriter.h" />
+    <ClInclude Include="File\Writer\FstreamFileWriter.h" />
+    <ClInclude Include="File\Writer\TruncatableFileWriter.h" />
+    <ClInclude Include="File\Writer\WinApiFileWriter.h" />
+    <ClInclude Include="Libraries\strhelper.h" />
+    <ClInclude Include="Libraries\Locker.h" />
+    <ClInclude Include="Libraries\FileTracker.h" />
     <ClInclude Include="environment\DirectoryCreator.h" />
     <ClInclude Include="Extension.h" />
     <ClInclude Include="python\PathFormatter.h" />
@@ -178,7 +189,6 @@
     <ClInclude Include="ScriptManager.h" />
     <ClInclude Include="Libraries\datetime.h" />
     <ClInclude Include="Libraries\inihandler.h" />
-    <ClInclude Include="Libraries\stringconvert.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

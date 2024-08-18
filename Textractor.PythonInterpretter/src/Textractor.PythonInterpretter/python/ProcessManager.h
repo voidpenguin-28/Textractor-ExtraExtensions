@@ -1,12 +1,12 @@
 #pragma once
 
+#include "../Libraries/Locker.h"
+#include "../Libraries/strhelper.h"
 #include "../logging/LoggerBase.h"
-#include "Locker.h"
 #include "ProcessStateTracker.h"
 #include "WinApiHelper.h"
 #include "WinEventHandler.h"
 #include <iostream>
-#include <mutex>
 #include <string>
 #include <windows.h>
 using namespace std;
@@ -42,96 +42,70 @@ public:
 	virtual ~ThreadSafeProcessManager() { }
 
 	bool isProcessEnabled() const override {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &result]() {
-			result = _rootProcManager.isProcessEnabled();
-		});
-
-		return result;
+		return _semaLocker.lockB(_isProcessEnabled);
 	}
 
 	bool isProcessActive(DWORD waitForExitMs = 0) const override {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
 
-		_semaLocker.lock([this, &result, waitForExitMs]() {
-			result = _rootProcManager.isProcessActive(waitForExitMs);
+		return _semaLocker.lockB([this, waitForExitMs]() {
+			return _rootProcManager.isProcessActive(waitForExitMs);
 		});
-		
-		return result;
 	}
 
 	bool waitForProcessExit(DWORD waitMs = WAIT_MS_DEFAULT) const override {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
 
-		_semaLocker.lock([this, &result, waitMs]() {
-			result = _rootProcManager.waitForProcessExit(waitMs);
+		return _semaLocker.lockB([this, waitMs]() {
+			return _rootProcManager.waitForProcessExit(waitMs);
 		});
-
-		return result;
 	}
 
 	bool waitForProcessExit(DWORD& waitStatus, DWORD& errCode, DWORD waitMs = WAIT_MS_DEFAULT) const override {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
 
-		_semaLocker.lock([this, &result, &waitStatus, &errCode, waitMs]() {
-			result = _rootProcManager.waitForProcessExit(waitStatus, errCode, waitMs);
+		return _semaLocker.lockB([this, &waitStatus, &errCode, waitMs]() {
+			return _rootProcManager.waitForProcessExit(waitStatus, errCode, waitMs);
 		});
-
-		return result;
 	}
 
 	virtual bool exitedSuccessfully() const {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &result]() {
-			result = _rootProcManager.exitedSuccessfully();
-		});
-
-		return result;
+		return _semaLocker.lockB(_exitedSuccessfully);
 	}
 
 	virtual bool exitedSuccessfully(DWORD& exitStatus, DWORD& errCode) const {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
 
-		_semaLocker.lock([this, &result, &exitStatus, &errCode]() {
-			result = _rootProcManager.exitedSuccessfully(exitStatus, errCode);
+		return _semaLocker.lockB([this, &exitStatus, &errCode]() {
+			return _rootProcManager.exitedSuccessfully(exitStatus, errCode);
 		});
-
-		return result;
 	}
 
 	virtual DWORD createProcess(const string& command, bool hideWindow) override {
-		DWORD result{};
-
-		_coreLocker.lock([this, &result, &command, hideWindow]() {
+		return _coreLocker.lockDW([this, &command, hideWindow]() {
 			_semaLocker.waitForAllUnlocked();
-			result = _rootProcManager.createProcess(command, hideWindow);
+			return _rootProcManager.createProcess(command, hideWindow);
 		});
-
-		return result;
 	}
 
 	virtual DWORD closeProcess() override {
-		DWORD result{};
-		
-		_coreLocker.lock([this, &result]() {
-			_semaLocker.waitForAllUnlocked();
-			result = _rootProcManager.closeProcess();
-		});
-
-		return result;
+		return _coreLocker.lockDW(_closeProcess);
 	}
 private:
 	ProcessManager& _rootProcManager;
 	mutable BasicLocker _coreLocker;
 	mutable SemaphoreLocker _semaLocker;
+	
+	const function<bool()> _isProcessEnabled = [this]() { return _rootProcManager.isProcessEnabled(); };
+	const function<bool()> _exitedSuccessfully = [this]() {
+		return _rootProcManager.exitedSuccessfully();
+	};
+	const function<DWORD()> _closeProcess = [this]() {
+		_semaLocker.waitForAllUnlocked();
+		return _rootProcManager.closeProcess();
+	};
 };
 
 
@@ -251,7 +225,7 @@ private:
 	}
 
 	DWORD createProcess(const string& command, STARTUPINFO& si, DWORD processFlags) {
-		wstring commandW = WinApiHelper::convertToW(command);
+		wstring commandW = StrHelper::convertToW(command);
 
 		if (!CreateProcess(NULL, (wchar_t*)(commandW.c_str()), NULL, NULL, TRUE, processFlags, NULL, NULL, &si, &_pi)) {
 			DWORD errCode = GetLastError();

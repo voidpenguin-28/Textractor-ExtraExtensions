@@ -277,21 +277,12 @@ public:
 	virtual ~ThreadSafePythonManagerThread() { }
 	
 	virtual bool isActive() const override {
-		bool active = false;
 		_coreLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &active]() {
-			active = _mainThread->isActive();
-		});
-
-		return active;
+		return _semaLocker.lockB(_isActive);
 	}
 
 	virtual void close() override {
-		_coreLocker.lock([this]() {
-			_semaLocker.waitForAllUnlocked();
-			_mainThread->close();
-		});
+		_coreLocker.lock(_close);
 	}
 
 	virtual void addToBeforeClose(const function<void(
@@ -318,6 +309,12 @@ private:
 	mutable BasicLocker _coreLocker;
 	mutable SemaphoreLocker _semaLocker;
 	unique_ptr<PythonManagerThread> _mainThread;
+
+	const function<bool()> _isActive = [this]() { return _mainThread->isActive(); };
+	const function<void()> _close = [this]() {
+		_semaLocker.waitForAllUnlocked();
+		_mainThread->close();
+	};
 };
 
 class ThreadSafePythonThread : public PythonThread {
@@ -328,21 +325,12 @@ public:
 	virtual ~ThreadSafePythonThread() { }
 
 	virtual bool isActive() const override {
-		bool active = false;
 		_coreLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &active]() {
-			active = _mainThread->isActive();
-		});
-
-		return active;
+		return _semaLocker.lockB(_isActive);
 	}
 
 	virtual void close() override {
-		_coreLocker.lock([this]() {
-			_semaLocker.waitForAllUnlocked();
-			_mainThread->close();
-		});
+		_coreLocker.lock(_close);
 	}
 
 	virtual void addToBeforeClose(const function<void(
@@ -360,18 +348,20 @@ public:
 	}
 
 	string runCommand(const string& command) override {
-		string output;
-
-		_coreLocker.lock([this, &command, &output]() {
+		return _coreLocker.lockS([this, &command]() {
 			_semaLocker.waitForAllUnlocked();
-			output = _mainThread->runCommand(command);
+			return _mainThread->runCommand(command);
 		});
-
-		return output;
 	}
 private:
 	mutable BasicLocker _coreLocker;
 	mutable SemaphoreLocker _semaLocker;
 	unique_ptr<PythonThread> _mainThread;
+
+	const function<bool()> _isActive = [this]() { return _mainThread->isActive(); };
+	const function<void()> _close = [this]() {
+		_semaLocker.waitForAllUnlocked();
+		_mainThread->close();
+	};
 };
 

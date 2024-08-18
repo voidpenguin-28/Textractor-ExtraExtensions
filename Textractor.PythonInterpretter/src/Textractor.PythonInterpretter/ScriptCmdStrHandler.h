@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Libraries/strhelper.h"
 #include "python/WinApiHelper.h"
 #include "Extension.h"
 #include <functional>
@@ -35,21 +36,13 @@ public:
 	}
 
 	string getOnScriptLoadCommand() override {
-		string command = _onScriptLoadCommandTemplate;
-
 		string customVarsJson = serializeJson(_scriptCustomVarsGetter(), true);
-		command = WinApiHelper::replace(command, "{0}", customVarsJson);
-
-		return command;
+		return StrHelper::format(_onScriptLoadCommandTemplate, vector<string> { customVarsJson });
 	}
 
 	string getOnScriptUnloadCommand() override {
-		string command = _onScriptUnloadCommandTemplate;
-
 		string customVarsJson = serializeJson(_scriptCustomVarsGetter(), true);
-		command = WinApiHelper::replace(command, "{0}", customVarsJson);
-
-		return command;
+		return StrHelper::format(_onScriptUnloadCommandTemplate, vector<string> { customVarsJson });
 	}
 
 	string getProcessSentenceDefinedCheckCommand() override {
@@ -62,15 +55,12 @@ public:
 		string command = returnErrMsg ? 
 			_processSentenceCommandTryCatchTemplate : _processSentenceCommandTemplate;
 
-		command = WinApiHelper::replace(command, "{0}", formatSentence(sentence));
-
 		string sentenceInfoJson = serializeSentenceInfo(sentenceInfo);
-		command = WinApiHelper::replace(command, "{1}", sentenceInfoJson);
-
 		string customVarsJson = serializeJson(_scriptCustomVarsGetter(), true);
-		command = WinApiHelper::replace(command, "{2}", customVarsJson);
 
-		return command;
+		return StrHelper::format(command, vector<string> { 
+			formatSentence(sentence), sentenceInfoJson, customVarsJson
+		});
 	}
 
 	string parseCommandOutput(const string& fullOutput, const string& defaultValue) override {
@@ -131,8 +121,8 @@ private:
 	}
 
 	string formatSentence(const string& sentence) {
-		string formattedSent = WinApiHelper::replace(sentence, "\\", "\\\\");
-		formattedSent = WinApiHelper::replace(sentence, "\"", "\\\"");
+		string formattedSent = StrHelper::replace<char>(sentence, "\\", "\\\\");
+		formattedSent = StrHelper::replace<char>(sentence, "\"", "\\\"");
 
 		return "\"\"\"" + formattedSent + "\"\"\"";
 	}

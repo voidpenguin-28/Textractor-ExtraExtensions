@@ -1,20 +1,18 @@
 
 #pragma once
-#include "Libraries/stringconvert.h"
+#include "Libraries/Locker.h"
+#include "Libraries/strhelper.h"
 #include "logging/LoggerBase.h"
-#include "python/Locker.h"
 #include "python/PythonProcess.h"
 #include "Extension.h"
 #include "ScriptCmdStrHandler.h"
 #include "ThreadIdGenerator.h"
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <iostream>
 #include <sstream>
 #include <string>
 using namespace std;
-using MutexPtr = shared_ptr<mutex>;
 
 
 class ScriptManager {
@@ -37,29 +35,18 @@ public:
 		: _mainManager(mainManager), _idGenerator(idGenerator) { }
 
 	virtual string getScriptPath() const override {
-		string scriptPath;
 		_mainLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &scriptPath]() {
-			scriptPath = _mainManager.getScriptPath();
-		});
-
-		return scriptPath;
+		return _semaLocker.lockS(_getScriptPath);
 	}
 
 	virtual bool isScriptLoaded() const override {
-		bool loaded = false;
 		_mainLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &loaded]() {
-			loaded = _mainManager.isScriptLoaded();
-		});
-
-		return loaded;
+		return _semaLocker.lockB(_isScriptLoaded);
 	}
 
 	virtual bool loadPythonScript(const string& scriptPath, bool resetScript) override {
 		bool loaded = false;
+
 		bool tookLock = _loadLocker.tryLock([this, &loaded, &scriptPath, resetScript]() {
 			_mainLocker.lock([this, &loaded, &scriptPath, resetScript]() {
 				_semaLocker.waitForAllUnlocked();
@@ -76,30 +63,24 @@ public:
 	}
 
 	virtual void unloadPythonScript() override {
-		bool tookLock = _unloadLocker.tryLock([this]() { 
-			_mainLocker.lock([this]() {
-				_semaLocker.waitForAllUnlocked();
-				_mainManager.unloadPythonScript();
-			});
-		});
-
+		bool tookLock = _unloadLocker.tryLock(_unloadPythonScript);
 		if (!tookLock) _unloadLocker.waitForUnlock();
 	}
 
 	virtual wstring processSentenceFromScript(const wstring& sentence, 
 		SentenceInfoWrapper& sentenceInfo, bool appendErrMsg = false) override
 	{
-		MutexPtr threadMutex = getThreadMutex(sentenceInfo);
-		lock_guard<mutex> lock(*threadMutex);
-		return _mainManager.processSentenceFromScript(sentence, sentenceInfo, appendErrMsg);
+		return getThreadLocker(sentenceInfo).lockWS([this, &sentence, &sentenceInfo, appendErrMsg]() {
+			return _mainManager.processSentenceFromScript(sentence, sentenceInfo, appendErrMsg);
+		});
 	}
 
 	virtual string processSentenceFromScript(const string& sentence, 
 		SentenceInfoWrapper& sentenceInfo, bool appendErrMsg = false) override
 	{
-		MutexPtr threadMutex = getThreadMutex(sentenceInfo);
-		lock_guard<mutex> lock(*threadMutex);
-		return _mainManager.processSentenceFromScript(sentence, sentenceInfo, appendErrMsg);
+		return getThreadLocker(sentenceInfo).lockS([this, &sentence, &sentenceInfo, appendErrMsg]() {
+			return _mainManager.processSentenceFromScript(sentence, sentenceInfo, appendErrMsg);
+		});
 	}
 private:
 	ScriptManager& _mainManager;
@@ -108,25 +89,41 @@ private:
 	mutable BasicLocker _loadLocker;
 	mutable BasicLocker _unloadLocker;
 	mutable SemaphoreLocker _semaLocker;
-	unordered_map<string, MutexPtr> _threadMutexMap;
+	unordered_map<string, unique_ptr<Locker>> _threadLockerMap;
 	
-	MutexPtr getThreadMutex(SentenceInfoWrapper& sentenceInfo) {
+	const function<string()> _getScriptPath = [this]() { return _mainManager.getScriptPath(); };
+	const function<bool()> _isScriptLoaded = [this]() { return _mainManager.isScriptLoaded(); };
+	const function<void()> _unloadPythonScript = [this]() {
+		static const function<void()> _f = [this]() {
+			_semaLocker.waitForAllUnlocked();
+			_mainManager.unloadPythonScript();
+		};
+
+		_mainLocker.lock(_f);
+	};
+
+	Locker& getThreadLocker(SentenceInfoWrapper& sentenceInfo) {
 		string threadId = _idGenerator.generateId(sentenceInfo);
-		return getThreadMutex(threadId);
+		return getThreadLocker(threadId);
 	}
 
-	MutexPtr getThreadMutex(const string& threadId) {
-		_mainLocker.waitForUnlock();
-		if (!hasThreadMutex(threadId)) setThreadMutex(threadId);
-		return _threadMutexMap[threadId];
+	Locker& getThreadLocker(const string& threadId) {
+		Locker* locker = nullptr;
+
+		_mainLocker.lock([this, &threadId, &locker]() {
+			if (!hasThreadLocker(threadId)) setThreadLocker(threadId);
+			locker = _threadLockerMap[threadId].get();
+		});
+
+		return *locker;
 	}
 
-	bool hasThreadMutex(const string& threadId) const {
-		return _threadMutexMap.find(threadId) != _threadMutexMap.end();
+	bool hasThreadLocker(const string& threadId) const {
+		return _threadLockerMap.find(threadId) != _threadLockerMap.end();
 	}
 
-	void setThreadMutex(const string& threadId) {
-		_threadMutexMap[threadId] = make_shared<mutex>();
+	void setThreadLocker(const string& threadId) {
+		_threadLockerMap[threadId] = make_unique<BasicLocker>();
 	}
 };
 
@@ -202,9 +199,9 @@ public:
 	virtual wstring processSentenceFromScript(const wstring& sentence, 
 		SentenceInfoWrapper& sentenceInfo, bool appendErrMsg = false) override
 	{
-		string utf8Sentence = convertFromW(sentence);
+		string utf8Sentence = StrHelper::convertFromW(sentence);
 		string outputSentence = processSentenceFromScript(utf8Sentence, sentenceInfo, appendErrMsg);
-		return convertToW(outputSentence);
+		return StrHelper::convertToW(outputSentence);
 	}
 
 	virtual string processSentenceFromScript(const string& sentence, 
@@ -224,7 +221,7 @@ public:
 		return output;
 	}
 private:
-	const string ZERO_WIDTH_SPACE = convertFromW(L"\x200b");
+	const string ZERO_WIDTH_SPACE = StrHelper::convertFromW(L"\x200b");
 	const string _loadThreadId = "PyScriptLoad";
 	const string _unloadThreadId = "PyScriptUnload";
 	string _currentScriptPath;

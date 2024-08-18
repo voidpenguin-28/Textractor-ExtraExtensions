@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Libraries/strhelper.h"
 #include "../logging/LoggerBase.h"
 #include "ProcessStateTracker.h"
 #include "WinApiHelper.h"
@@ -72,7 +73,7 @@ private:
 	HANDLE createEvent(const string& eventName, DWORD& errCode) const {
 		_logger.logInfo("Creating win event: " + eventName);
 		errCode = NO_ERROR;
-		wstring eventNameW = WinApiHelper::convertToW(eventName);
+		wstring eventNameW = StrHelper::convertToW(eventName);
 		HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, eventNameW.c_str());
 
 		if (!WinApiHelper::isValidHandleValue(hEvent)) {
@@ -122,7 +123,7 @@ private:
 	HANDLE openEvent(const string& eventName, DWORD& errCode) const {
 		_logger.logInfo("Opening win event: " + eventName);
 		errCode = NO_ERROR;
-		wstring eventNameW = WinApiHelper::convertToW(eventName);
+		wstring eventNameW = StrHelper::convertToW(eventName);
 		HANDLE hEvent = OpenEvent(EVENT_MODIFY_STATE, false, eventNameW.c_str());
 
 		if (!WinApiHelper::isValidHandleValue(hEvent)) {

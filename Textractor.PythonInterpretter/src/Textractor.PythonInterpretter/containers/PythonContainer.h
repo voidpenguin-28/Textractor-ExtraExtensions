@@ -4,6 +4,7 @@
 #include "../logging/Loggers.h"
 #include "../python/PythonProcess.h"
 #include "../ExtensionConfig.h"
+#include "LoggerFactory.h"
 #include <functional>
 #include <memory>
 using namespace std;
@@ -25,7 +26,9 @@ public:
 		const string logFilePath = config.logDirPath + moduleName + "-host-log.txt";
 		
 		_loggerEvents = make_unique<DynamicLoggerEvents>();
-		_logger = make_unique<FileLogger>(logFilePath, *_loggerEvents, config.logLevel);
+		_loggerFactory = make_unique<PersistentWinApiFileWriterLoggerManager>();
+		_logger = unique_ptr<Logger>(
+			_loggerFactory->createLogger(logFilePath, *_loggerEvents, config.logLevel));
 
 		_stateTracker = make_unique<WinApiProcessStateTracker>();
 		_rootProcManager = make_unique<WinApiProcessManager>(moduleName, *_logger, *_stateTracker);
@@ -45,9 +48,11 @@ public:
 		function<unique_ptr<PipeManager>(const string&, const size_t)> pipeGen =
 			[this](const string& pipeName, const size_t bufferSize)
 			{
+				Logger& logger = getLogger();
+
 				unique_ptr<PipeManager> mainManager = bufferSize > 0 ?
-					make_unique<WinApiPipeManager>(*_logger, pipeName, bufferSize) :
-					make_unique<WinApiPipeManager>(*_logger, pipeName);
+					make_unique<WinApiPipeManager>(logger, pipeName, bufferSize) :
+					make_unique<WinApiPipeManager>(logger, pipeName);
 
 				return make_unique<ThreadSafePipeManager>(move(mainManager));
 			};
@@ -92,8 +97,11 @@ private:
 	const string _scriptDirPath = getTempPath();
 
 	unique_ptr<PythonProcess> _pyProc = nullptr;
+
 	unique_ptr<DynamicLoggerEvents> _loggerEvents = nullptr;
+	unique_ptr<LoggerFactory> _loggerFactory = nullptr;
 	unique_ptr<Logger> _logger = nullptr;
+
 	unique_ptr<ProcessStateTracker> _stateTracker = nullptr;
 	unique_ptr<ProcessManager> _rootProcManager = nullptr;
 	unique_ptr<ProcessManager> _mainProcManager = nullptr;

@@ -33,15 +33,12 @@
     <ClCompile Include="ConfigAdjustmentEvents.h">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StringHelper.h">
+    <ClCompile Include="KeyValSplitter.h">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Extension.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Libraries\stringconvert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtensionConfig.h">
@@ -107,10 +104,10 @@
     <ClInclude Include="environment\EnvironmentVarRetriever.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="environment\FileTracker.h">
+    <ClInclude Include="Libraries\FileTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="python\Locker.h">
+    <ClInclude Include="Libraries\Locker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="python\pip\PipPackageInstaller.h">
@@ -126,6 +123,39 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="python\pip\CustomPackageToModuleMapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\strhelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtExecRequirements.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\FileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\FireAndForgetFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\TruncatableFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileDeleter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileTruncater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\FstreamFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\WinApiFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="containers\LoggerFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

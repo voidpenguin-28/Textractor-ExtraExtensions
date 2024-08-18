@@ -1,6 +1,6 @@
 
 #pragma once
-#include "../Libraries/stringconvert.h"
+#include "strhelper.h"
 #include <string>
 #include <windows.h>
 using namespace std;
@@ -10,17 +10,27 @@ class FileTracker {
 public:
 	virtual ~FileTracker() { }
 	virtual int64_t getDateLastModifiedEpochs(const string& filePath) = 0;
+	virtual int64_t getDateLastModifiedEpochs(const char* filePath) = 0;
 	virtual int64_t getDateLastModifiedEpochs(const wstring& filePath) = 0;
+	virtual int64_t getDateLastModifiedEpochs(const wchar_t* filePath) = 0;
 };
 
 
 class WinApiFileTracker : public FileTracker {
 public:
 	int64_t getDateLastModifiedEpochs(const string& filePath) override {
-		return getDateLastModifiedEpochs(convertToW(filePath));
+		return getDateLastModifiedEpochs(StrHelper::convertToW(filePath));
+	}
+
+	int64_t getDateLastModifiedEpochs(const char* filePath) override {
+		return getDateLastModifiedEpochs(string(filePath));
 	}
 
 	int64_t getDateLastModifiedEpochs(const wstring& filePath) override {
+		return getDateLastModifiedEpochs(filePath.c_str());
+	}
+
+	int64_t getDateLastModifiedEpochs(const wchar_t* filePath) override {
 		HANDLE fHandle = getFileHandle(filePath);
 		if (!isValidHandle(fHandle)) return 0;
 
@@ -30,8 +40,8 @@ public:
 		return convertTo64(lastWrite);
 	}
 private:
-	HANDLE getFileHandle(const wstring& filePath) {
-		return CreateFile(filePath.c_str(), GENERIC_READ, 
+	HANDLE getFileHandle(const wchar_t* filePath) {
+		return CreateFile(filePath, GENERIC_READ, 
 			FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);
 	}
 

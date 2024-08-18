@@ -1,10 +1,10 @@
 #pragma once
 
+#include "../Libraries/Locker.h"
+#include "../Libraries/strhelper.h"
 #include "../logging/LoggerBase.h"
-#include "Locker.h"
 #include "WinApiHelper.h"
 #include <iostream>
-#include <mutex>
 #include <string>
 #include <windows.h>
 using namespace std;
@@ -42,96 +42,68 @@ public:
 	virtual ~ThreadSafePipeManager() { }
 
 	bool isPipeEnabled() const override {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
-
-		_semaLocker.lock([this, &result]() {
-			result = _rootPipeManager->isPipeEnabled();
-		});
-
-		return result;
+		return _semaLocker.lockB(_isPipeEnabled);
 	}
 
 	bool isPipeActive(DWORD waitForExitMs = 0) const override {
-		DWORD result{};
 		_coreLocker.waitForUnlock();
 
-		_semaLocker.lock([this, &result, waitForExitMs]() {
-			result = _rootPipeManager->isPipeActive(waitForExitMs);
+		return _semaLocker.lockB([this, waitForExitMs]() {
+			return _rootPipeManager->isPipeActive(waitForExitMs);
 		});
-
-		return result;
 	}
 
 	DWORD createPipe(bool connectPipe) override {
-		DWORD result{};
-		
-		_coreLocker.lock([this, &result, connectPipe]() {
+		return _coreLocker.lockDW([this, connectPipe]() {
 			_semaLocker.waitForAllUnlocked();
-			result = _rootPipeManager->createPipe(connectPipe);
+			return _rootPipeManager->createPipe(connectPipe);
 		});
-
-		return result;
 	}
 
 	DWORD connectToPipe() override {
-		DWORD result{};
-		
-		_coreLocker.lock([this, &result]() {
-			_semaLocker.waitForAllUnlocked();
-			result = _rootPipeManager->connectToPipe();
-		});
-
-		return result;
+		return _coreLocker.lockDW(_connectToPipe);
 	}
 
 	DWORD closePipe() override {
-		DWORD result{};
-		
-		_coreLocker.lock([this, &result]() {
-			_semaLocker.waitForAllUnlocked();
-			result = _rootPipeManager->closePipe();
-		});
-
-		return result;
+		return _coreLocker.lockDW(_closePipe);
 	}
 
 	DWORD disconnectFromPipe() override {
-		DWORD result{};
-
-		_coreLocker.lock([this, &result]() {
-			_semaLocker.waitForAllUnlocked();
-			result = _rootPipeManager->disconnectFromPipe();
-		});
-
-		return result;
+		return _coreLocker.lockDW(_disconnectFromPipe);
 	}
 
 	DWORD writeToPipe(const string& command) override {
-		DWORD result{};
-
-		_coreLocker.lock([this, &result, &command]() {
+		return _coreLocker.lockDW([this, &command]() {
 			_semaLocker.waitForAllUnlocked();
-			result = _rootPipeManager->writeToPipe(command);
+			return _rootPipeManager->writeToPipe(command);
 		});
-
-		return result;
 	}
 
 	DWORD readFromPipe(string& output) override {
-		DWORD result{};
-
-		_coreLocker.lock([this, &result, &output]() {
+		return _coreLocker.lockDW([this, &output]() {
 			_semaLocker.waitForAllUnlocked();
-			result = _rootPipeManager->readFromPipe(output);
+			return _rootPipeManager->readFromPipe(output);
 		});
-
-		return result;
 	}
 private:
 	unique_ptr<PipeManager> _rootPipeManager;
 	mutable BasicLocker _coreLocker;
 	mutable SemaphoreLocker _semaLocker;
+	
+	const function<DWORD()> _isPipeEnabled = [this]() { return _rootPipeManager->isPipeEnabled(); };
+	const function<DWORD()> _connectToPipe = [this]() {
+		_semaLocker.waitForAllUnlocked();
+		return _rootPipeManager->connectToPipe();
+	};
+	const function<DWORD()> _closePipe = [this]() {
+		_semaLocker.waitForAllUnlocked();
+		return _rootPipeManager->closePipe();
+	};
+	const function<DWORD()> _disconnectFromPipe = [this]() {
+		_semaLocker.waitForAllUnlocked();
+		return _rootPipeManager->disconnectFromPipe();
+	};
 };
 
 
@@ -180,7 +152,7 @@ public:
 		if (!isPipeEnabled()) {
 			DWORD errCode = GetLastError();
 			_logger.logError("Failed to create pipe '" +
-				WinApiHelper::convertFromW(_pipePath) + "'. ErrCode: " + to_string(errCode));
+				StrHelper::convertFromW(_pipePath) + "'. ErrCode: " + to_string(errCode));
 
 			_pipe = nullptr;
 			return errCode;
@@ -308,7 +280,7 @@ private:
 	char* _buffer;
 
 	static wstring createPipePath(const string& pipeName) {
-		return L"\\\\.\\pipe\\" + WinApiHelper::convertToW(pipeName);
+		return L"\\\\.\\pipe\\" + StrHelper::convertToW(pipeName);
 	}
 
 	bool isPipeActiveViaWaitNamedPipe(DWORD waitForExitMs = 0) const {

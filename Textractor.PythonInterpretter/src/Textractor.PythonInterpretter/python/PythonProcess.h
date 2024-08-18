@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Libraries/strhelper.h"
 #include "../logging/LoggerBase.h"
 #include "pip/PipPackageInstaller.h"
 #include "PipeManager.h"
@@ -176,7 +177,7 @@ private:
 	void installRequiredPipPackages() {
 		vector<string> reqPackages = _pyCodeReserve.getRequiredPipPackages();
 		if (!_packageInstaller.install(reqPackages))
-			_logger.logWarning("Failed to install all required pip packages. This will be ignored and python execution will continue. Packages: " + WinApiHelper::join(", ", reqPackages));
+			_logger.logWarning("Failed to install all required pip packages. This will be ignored and python execution will continue. Packages: " + StrHelper::join<char>(", ", reqPackages));
 	}
 
 	string createPipeName(const string& identifier) {

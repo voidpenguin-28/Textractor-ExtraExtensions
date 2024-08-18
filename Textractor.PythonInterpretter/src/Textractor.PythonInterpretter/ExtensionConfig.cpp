@@ -1,6 +1,7 @@
 
 #include "ExtensionConfig.h"
-#include "Libraries/stringconvert.h"
+#include "Libraries/strhelper.h"
+using ConsoleClipboardMode = ExtensionConfig::ConsoleClipboardMode;
 
 const wstring DISABLED_KEY = L"Disabled";
 const wstring SCRIPT_PATH_KEY = L"ScriptPath";
@@ -21,13 +22,9 @@ const wstring CUSTOM_PYTHON_PATH_KEY = L"CustomPythonPath";
 
 // *** PUBLIC
 
-bool IniConfigRetriever::configSectionExists() {
+bool IniConfigRetriever::configSectionExists() const {
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
 	return ini->sectionExists(_iniSectionName);
-}
-
-bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) {
-	return ini.keyExists(_iniSectionName, key);
 }
 
 void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) {
@@ -63,10 +60,11 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, DISABLED_KEY, defaultConfig.disabled),
 		getValOrDef(*ini, SCRIPT_PATH_KEY, defaultConfig.scriptPath),
 		getValOrDef(*ini, LOG_DIR_PATH_KEY, defaultConfig.logDirPath),
-		getValOrDef(*ini, LOG_LEVEL_KEY, defaultConfig.logLevel),
+		getLevelValOrDef(*ini, LOG_LEVEL_KEY, defaultConfig.logLevel),
 		getValOrDef(*ini, APPEND_ERR_MSG_KEY, defaultConfig.appendErrMsg),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, defaultConfig.activeThreadOnly),
-		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
+		getValOrDef<ConsoleClipboardMode>(*ini, 
+			SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, RELOAD_ON_SCRIPT_MOD_KEY, defaultConfig.reloadOnScriptModified),
 		getValOrDef(*ini, FORCE_SCRIPT_RELOAD_KEY, defaultConfig.forceScriptReload),
 		getValOrDef(*ini, PIP_PACKAGE_INSTALL_MODE_KEY, defaultConfig.pipPackageInstallMode),
@@ -83,6 +81,10 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 
 // *** PRIVATE
 
+bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
+	return ini.keyExists(_iniSectionName, key);
+}
+
 bool IniConfigRetriever::setValue(IniContents& ini, 
 	const wstring& key, const wstring& value, bool overrideIfExists)
 {
@@ -92,7 +94,7 @@ bool IniConfigRetriever::setValue(IniContents& ini,
 bool IniConfigRetriever::setValue(IniContents& ini, 
 	const wstring& key, const string& value, bool overrideIfExists)
 {
-	return setValue(ini, key, convertToW(value), overrideIfExists);
+	return setValue(ini, key, StrHelper::convertToW(value), overrideIfExists);
 }
 
 bool IniConfigRetriever::setValue(IniContents& ini, 
@@ -108,7 +110,7 @@ bool IniConfigRetriever::setValue(IniContents& ini,
 	return setValue(ini, key, logLevelStr, overrideIfExists);
 }
 
-string IniConfigRetriever::logLevelToStr(Logger::Level logLevel) {
+string IniConfigRetriever::logLevelToStr(Logger::Level logLevel) const {
 	switch (logLevel) {
 	case Logger::Info: return "Info";
 	case Logger::Warning: return "Warning";
@@ -122,25 +124,32 @@ void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) {
 	saveConfig(DefaultConfig, overrideIfExists);
 }
 
-wstring IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, wstring defaultValue) {
+wstring IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, wstring defaultValue) const {
 	return ini.getValue(_iniSectionName, key, defaultValue);
 }
 
-string IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, string defaultValue) {
-	wstring value = getValOrDef(ini, key, convertToW(defaultValue));
-	return convertFromW(value);
+string IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, string defaultValue) const {
+	wstring value = getValOrDef(ini, key, StrHelper::convertToW(defaultValue));
+	return StrHelper::convertFromW(value);
 }
 
-int IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) {
+int IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
 	return ini.getValue(_iniSectionName, key, defaultValue);
 }
 
-Logger::Level IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, Logger::Level defaultValue) {
+template<typename T>
+T IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
+	return static_cast<T>(getValOrDef(ini, key, defaultValue));
+}
+
+Logger::Level IniConfigRetriever::getLevelValOrDef(IniContents& ini, 
+	const wstring& key, Logger::Level defaultValue) const
+{
 	string logLevelStr = getValOrDef(ini, key, "");
 	return strToLogLevel(logLevelStr, defaultValue);
 }
 
-Logger::Level IniConfigRetriever::strToLogLevel(const string& logLevelStr, Logger::Level defaultValue) {
+Logger::Level IniConfigRetriever::strToLogLevel(const string& logLevelStr, Logger::Level defaultValue) const {
 	if (logLevelStr == "Debug") return Logger::Debug;
 	else if (logLevelStr == "Info") return Logger::Info;
 	else if (logLevelStr == "Warning") return Logger::Warning;
@@ -149,7 +158,7 @@ Logger::Level IniConfigRetriever::strToLogLevel(const string& logLevelStr, Logge
 	else return defaultValue;
 }
 
-string IniConfigRetriever::unenclose(string str, const char encloseCh) {
+string IniConfigRetriever::unenclose(string str, const char encloseCh) const {
 	if (str.length() < 2) return str;
 
 	return (str[0] == encloseCh && str[str.length() - 1] == encloseCh) ?

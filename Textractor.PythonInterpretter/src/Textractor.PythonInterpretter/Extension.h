@@ -2,7 +2,7 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
-#include "Libraries/stringconvert.h"
+#include "Libraries/strhelper.h"
 #include <windows.h>
 #include <cstdint>
 #include <string>
@@ -69,7 +69,7 @@ public:
 
 	string getThreadName() {
 		wstring threadNameW = getThreadNameW();
-		return convertFromW(threadNameW);
+		return StrHelper::convertFromW(threadNameW);
 	}
 
 	wstring getThreadNameW() {

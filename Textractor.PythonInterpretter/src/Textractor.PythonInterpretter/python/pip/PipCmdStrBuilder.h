@@ -1,5 +1,6 @@
 
 #pragma once
+#include "../../Libraries/strhelper.h"
 #include "../PathFormatter.h"
 #include "../WinApiHelper.h"
 #include "CustomPackageToModuleMapper.h"
@@ -31,8 +32,8 @@ public:
 			_customPythonPathGetter(customPythonPathGetter) { }
 
 	string createInstallCmd(const vector<string>& packageNames) override {
-		string pyModules = WinApiHelper::join(",", _packageToModuleMapper.mapToModules(packageNames));
-		string pipPackages = WinApiHelper::join(" ", packageNames);
+		string pyModules = StrHelper::join<char>(",", _packageToModuleMapper.mapToModules(packageNames));
+		string pipPackages = StrHelper::join<char>(" ", packageNames);
 		return createInstallCmd(pyModules, "", pipPackages);
 	}
 
@@ -46,12 +47,12 @@ public:
 		vector<string> reqsTxtPackages = _reqsTxtParser.getPackageNames(formattedReqsTxtPath);
 		vector<string> reqsTxtModules = _packageToModuleMapper.mapToModules(reqsTxtPackages);
 
-		return createInstallCmd(WinApiHelper::join(",", reqsTxtModules), "-r", '"' + formattedReqsTxtPath + '"');
+		return createInstallCmd(StrHelper::join<char>(",", reqsTxtModules), "-r", '"' + formattedReqsTxtPath + '"');
 	}
 private:
 	DefaultPathFormatter _pathFormatter;
 	DefaultCustomPackageToModuleMapper _packageToModuleMapper;
-	RegexRequirementsTxtParser _reqsTxtParser;
+	DefaultRequirementsTxtParser _reqsTxtParser;
 	const function<int()> _pipPackageInstallModeGetter;
 	const function<string()> _customPythonPathGetter;
 
@@ -69,11 +70,8 @@ private:
 		if (!pyPath.empty()) pyPath = '"' + pyPath + '"';
 		applyInstallModeToArgs(moduleList, pipOptions, pipMainArg);
 
-		string command = _cmdTemplate;
-		command = WinApiHelper::replace(command, "{0}", pyPath);
-		command = WinApiHelper::replace(command, "{1}", moduleList);
-		command = WinApiHelper::replace(command, "{2}", pipOptions);
-		command = WinApiHelper::replace(command, "{3}", pipMainArg);
+		string command = StrHelper::format(_cmdTemplate, 
+			vector<string>{ pyPath, moduleList, pipOptions, pipMainArg });
 
 		return command;
 	}

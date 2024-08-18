@@ -29,7 +29,7 @@ public:
 		return modules;
 	}
 private:
-	unordered_map<string, string> _customPackageToModuleMap = {
+	const unordered_map<string, string> _customPackageToModuleMap = {
 		{ "pypiwin32", "win32file" }
 	};
 
@@ -38,6 +38,6 @@ private:
 	}
 
 	string getModuleMapping(const string& packageName) {
-		return _customPackageToModuleMap[packageName];
+		return _customPackageToModuleMap.at(packageName);
 	}
 };
