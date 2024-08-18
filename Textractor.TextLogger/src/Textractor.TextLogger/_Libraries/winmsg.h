@@ -1,6 +1,6 @@
 
 #pragma once
-#include "stringconvert.h"
+#include "strhelper.h"
 #include <string>
 #include <windows.h>
 using namespace std;
@@ -15,7 +15,7 @@ inline string getModuleName(const HMODULE& handle) {
 		wchar_t buffer[1024];
 		GetModuleFileName(handle, buffer, sizeof(buffer) / sizeof(wchar_t));
 
-		string module = convertFromW(buffer);
+		string module = StrHelper::convertFromW(buffer);
 		size_t pathDelimIndex = module.rfind('\\');
 		if (pathDelimIndex != string::npos) module = module.substr(pathDelimIndex + 1);
 
@@ -27,7 +27,7 @@ inline string getModuleName(const HMODULE& handle) {
 	catch (exception& ex) {
 		string errMsg = "Failed to retrieve extension name.\n";
 		errMsg += ex.what();
-		showErrorMessage(errMsg.c_str(), "TextLogger");
+		showErrorMessage(errMsg.c_str(), "VndbNameMapper");
 		throw;
 	}
 }

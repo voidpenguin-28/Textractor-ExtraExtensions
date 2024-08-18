@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Libraries/datetime.h"
-#include "Libraries/stringconvert.h"
+#include "_Libraries/datetime.h"
+#include "_Libraries/strhelper.h"
+#include "Extension.h"
 #include "ExtensionConfig.h"
 #include "ProcessNameRetriever.h"
-#include "SentenceInfoWrapper.h"
 #include <string>
 using namespace std;
 
@@ -67,7 +67,7 @@ public:
 			msg = replace(msg, THREAD_NAME_PLACEHOLDER, threadName);
 		}
 		if (found(msg, DATETIME_PLACEHOLDER)) {
-			wstring currDateTime = convertToW(getCurrentDateTime());
+			wstring currDateTime = StrHelper::convertToW(getCurrentDateTime());
 			msg = replace(msg, DATETIME_PLACEHOLDER, currDateTime);
 		}
 		if (found(msg, SENTENCE_PLACEHOLDER)) {

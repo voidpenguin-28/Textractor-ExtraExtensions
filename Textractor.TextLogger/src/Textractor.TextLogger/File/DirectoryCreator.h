@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Libraries/stringconvert.h"
+#include "../_Libraries/strhelper.h"
+#include "../_Libraries/winmsg.h"
 #include <windows.h>
 #include <string>
 #include <iostream>
@@ -17,10 +18,11 @@ protected:
 	static constexpr char NO_SEPARATOR = '\0';
 };
 
+
 class WinApiDirectoryCreator : public DirectoryCreator {
 public:
 	bool createDir(const wstring& dirPath) const override {
-		return createDir(convertFromW(dirPath));
+		return createDir(StrHelper::convertFromW(dirPath));
 	}
 
 	bool createDir(const string& dirPath) const override {
@@ -73,11 +75,13 @@ private:
 		si.cb = sizeof(si);
 		si.wShowWindow = SW_HIDE;
 		ZeroMemory(&pi, sizeof(pi));
-		wstring commandW = convertToW(command);
+		wstring commandW = StrHelper::convertToW(command);
 
 		if (!CreateProcessW(NULL, (wchar_t*)(commandW.c_str()), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
 		{
-			cerr << "Failed to run command '" << command << "'. ErrCode: " << GetLastError() << endl;
+			showErrorMessage("Failed to run command '" + command 
+				+ "'. ErrCode: " + to_string(GetLastError()), "TextLogger");
+
 			return false;
 		}
 

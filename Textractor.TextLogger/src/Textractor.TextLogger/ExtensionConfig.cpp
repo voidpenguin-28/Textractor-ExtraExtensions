@@ -1,7 +1,8 @@
 
 #include "ExtensionConfig.h"
-#include "Libraries/stringconvert.h"
+#include "_Libraries/strhelper.h"
 using FilterMode = ExtensionConfig::FilterMode;
+using ConsoleClipboardMode = ExtensionConfig::ConsoleClipboardMode;
 
 const wstring DISABLED_KEY = L"Disabled";
 const wstring LOG_FILE_PATH_TEMPLATE_KEY = L"LogFilePathTemplate";
@@ -21,11 +22,7 @@ bool IniConfigRetriever::configSectionExists() const {
 	return ini->sectionExists(_iniSectionName);
 }
 
-bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
-	return ini.keyExists(_iniSectionName, key);
-}
-
-void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) const {
+void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) {
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
 	bool changed = false;
 
@@ -42,7 +39,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	if (changed) _iniHandler.saveIni(*ini);
 }
 
-ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) const {
+ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) {
 	if (saveDefaultConfigIfNotExist) setDefaultConfig(false);
 
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
@@ -52,10 +49,11 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, DISABLED_KEY, defaultConfig.disabled),
 		getValOrDef(*ini, LOG_FILE_PATH_TEMPLATE_KEY, defaultConfig.logFilePathTemplate),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, defaultConfig.activeThreadOnly),
-		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
+		getValOrDef<ConsoleClipboardMode>(*ini, 
+			SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, MSG_TEMPLATE, defaultConfig.msgTemplate),
 		getValOrDef(*ini, ONLY_THREAD_NAME_KEY, defaultConfig.onlyThreadNameAsKey),
-		static_cast<FilterMode>(getValOrDef(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode)),
+		getValOrDef<FilterMode>(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_KEY, defaultConfig.threadKeyFilterList),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_DELIM_KEY, defaultConfig.threadKeyFilterListDelim)
 	);
@@ -66,25 +64,29 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 
 // *** PRIVATE
 
+bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
+	return ini.keyExists(_iniSectionName, key);
+}
+
 bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	const wstring& value, bool overrideIfExists) const
+	const wstring& value, bool overrideIfExists)
 {
 	return ini.setValue(_iniSectionName, key, value, overrideIfExists);
 }
 
 bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	const string& value, bool overrideIfExists) const
+	const string& value, bool overrideIfExists)
 {
-	return setValue(ini, key, convertToW(value), overrideIfExists);
+	return setValue(ini, key, StrHelper::convertToW(value), overrideIfExists);
 }
 
 bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	int value, bool overrideIfExists) const
+	int value, bool overrideIfExists)
 {
 	return setValue(ini, key, to_wstring(value), overrideIfExists);
 }
 
-void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) const {
+void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) {
 	saveConfig(DefaultConfig, overrideIfExists);
 }
 
@@ -93,10 +95,15 @@ wstring IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, ws
 }
 
 string IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, string defaultValue) const {
-	wstring value = getValOrDef(ini, key, convertToW(defaultValue));
-	return convertFromW(value);
+	wstring value = getValOrDef(ini, key, StrHelper::convertToW(defaultValue));
+	return StrHelper::convertFromW(value);
 }
 
 int IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
 	return ini.getValue(_iniSectionName, key, defaultValue);
+}
+
+template<typename T>
+T IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
+	return static_cast<T>(getValOrDef(ini, key, defaultValue));
 }

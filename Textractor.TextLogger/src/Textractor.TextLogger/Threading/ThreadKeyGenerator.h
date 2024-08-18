@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ExtensionConfig.h"
-#include "SentenceInfoWrapper.h"
+#include "../Extension.h"
+#include "../ExtensionConfig.h"
 #include <string>
 
 class ThreadKeyGenerator {

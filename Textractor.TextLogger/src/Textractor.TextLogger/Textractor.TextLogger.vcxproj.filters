@@ -24,18 +24,12 @@
     <ClCompile Include="ExtensionConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextLogger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Libraries\inihandler.cpp">
+    <ClCompile Include="_Libraries\inihandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Extension.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Libraries\stringconvert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtensionConfig.h">
@@ -44,40 +38,73 @@
     <ClInclude Include="TextLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadTracker.h">
+    <ClInclude Include="Threading\ThreadTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SentenceInfoWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectoryCreator.h">
+    <ClInclude Include="File\DirectoryCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProcessNameRetriever.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Libraries\inihandler.h">
+    <ClInclude Include="_Libraries\inihandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LoggerTextHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Libraries\datetime.h">
+    <ClInclude Include="_Libraries\datetime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadFilter.h">
+    <ClInclude Include="Threading\ThreadFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadKeyGenerator.h">
+    <ClInclude Include="Threading\ThreadKeyGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Libraries\winmsg.h">
+    <ClInclude Include="_Libraries\winmsg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtensionDepsContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_Libraries\FileTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_Libraries\Locker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_Libraries\strhelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\FileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\FireAndForgetFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\FstreamFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\TruncatableFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\WinApiFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileDeleter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileTruncater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtExecRequirements.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Writer\DirCreatorFileWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

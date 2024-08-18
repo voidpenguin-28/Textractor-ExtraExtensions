@@ -1,9 +1,10 @@
 #pragma once
 
-#include "SentenceInfoWrapper.h"
-#include <mutex>
+#include "../_Libraries/Locker.h"
+#include "../Extension.h"
 #include <unordered_map>
 using namespace std;
+
 
 class ThreadTracker {
 public:
@@ -11,25 +12,30 @@ public:
 	virtual size_t trackThreadNameIndex(SentenceInfoWrapper& sentInfoWrap) = 0;
 };
 
+
 class MapThreadTracker : public ThreadTracker {
 public:
 	size_t trackThreadNameIndex(SentenceInfoWrapper& sentInfoWrap) override {
-		lock_guard<mutex> lock(_mutex);
-		return trackThreadNameIndexBase(sentInfoWrap);
+		wstring threadName, threadId = createThreadId(sentInfoWrap, threadName);
+		return trackThreadNameIndexBase(threadId, threadName);
 	}
 private:
 	const wstring THREAD_ID_DELIM = L":";
 	unordered_map<wstring, size_t> _threadNameMap = { };
 	unordered_map<wstring, size_t> _threadIdMap = { };
-	mutable mutex _mutex;
+	mutable DefaultLockerMap<wstring> _lockerMap;
 
-	size_t trackThreadNameIndexBase(SentenceInfoWrapper& sentInfoWrap) {
-		wstring threadName, threadId = createThreadId(sentInfoWrap, threadName);
+	size_t trackThreadNameIndexBase(const wstring& threadId, const wstring& threadName) {
+		size_t index = 0;
 
-		if (!mapHasThreadId(threadId))
-			_threadIdMap[threadId] = addOrUpdateThreadNameMap(threadName);
+		_lockerMap.getOrCreateLocker(threadId).lock([this, &threadId, &threadName, &index]() {
+			if (!mapHasThreadId(threadId))
+				_threadIdMap[threadId] = addOrUpdateThreadNameMap(threadName);
 
-		return _threadIdMap[threadId];
+			index = _threadIdMap[threadId];
+			});
+
+		return index;
 	}
 
 	wstring createThreadId(SentenceInfoWrapper& sentInfoWrap, wstring& threadNameOut) const {

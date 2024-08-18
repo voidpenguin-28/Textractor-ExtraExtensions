@@ -142,26 +142,35 @@
     <ClCompile Include="Extension.cpp" />
     <ClCompile Include="ExtensionImpl.cpp" />
     <ClCompile Include="ExtensionConfig.cpp" />
-    <ClCompile Include="Libraries\inihandler.cpp" />
-    <ClCompile Include="TextLogger.cpp" />
+    <ClCompile Include="_Libraries\inihandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Extension.h" />
     <ClInclude Include="ExtensionConfig.h" />
-    <ClInclude Include="DirectoryCreator.h" />
-    <ClInclude Include="FileWriter.h" />
-    <ClInclude Include="Libraries\datetime.h" />
+    <ClInclude Include="File\DirectoryCreator.h" />
+    <ClInclude Include="ExtExecRequirements.h" />
+    <ClInclude Include="File\FileDeleter.h" />
+    <ClInclude Include="File\FileReader.h" />
+    <ClInclude Include="File\FileTruncater.h" />
+    <ClInclude Include="File\Writer\DirCreatorFileWriter.h" />
+    <ClInclude Include="File\Writer\FileWriter.h" />
+    <ClInclude Include="File\Writer\FireAndForgetFileWriter.h" />
+    <ClInclude Include="File\Writer\FstreamFileWriter.h" />
+    <ClInclude Include="File\Writer\TruncatableFileWriter.h" />
+    <ClInclude Include="File\Writer\WinApiFileWriter.h" />
+    <ClInclude Include="_Libraries\datetime.h" />
     <ClInclude Include="ExtensionDepsContainer.h" />
-    <ClInclude Include="Libraries\inihandler.h" />
-    <ClInclude Include="Libraries\winmsg.h" />
+    <ClInclude Include="_Libraries\FileTracker.h" />
+    <ClInclude Include="_Libraries\inihandler.h" />
+    <ClInclude Include="_Libraries\Locker.h" />
+    <ClInclude Include="_Libraries\strhelper.h" />
+    <ClInclude Include="_Libraries\winmsg.h" />
     <ClInclude Include="LoggerTextHandle.h" />
     <ClInclude Include="ProcessNameRetriever.h" />
     <ClInclude Include="TextLogger.h" />
-    <ClInclude Include="ThreadFilter.h" />
-    <ClInclude Include="ThreadKeyGenerator.h" />
-    <ClInclude Include="ThreadTracker.h" />
-    <ClInclude Include="Libraries\stringconvert.h" />
-    <ClInclude Include="SentenceInfoWrapper.h" />
+    <ClInclude Include="Threading\ThreadFilter.h" />
+    <ClInclude Include="Threading\ThreadKeyGenerator.h" />
+    <ClInclude Include="Threading\ThreadTracker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

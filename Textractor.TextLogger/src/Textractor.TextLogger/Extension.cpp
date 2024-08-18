@@ -1,26 +1,19 @@
 
-#include "Libraries/winmsg.h"
+#include "_Libraries/winmsg.h"
 #include "Extension.h"
 #include "ExtensionDepsContainer.h"
-#include <cstdint>
-#include <string> 
-#include <windows.h>
-using namespace std;
 
-string _moduleName = "";
+const string _backupModuleName = "TextLogger";
 ExtensionDepsContainer* _deps = nullptr;
 
-
 inline void allocateResources(const HMODULE& handle) {
-	_moduleName = getModuleName(handle);
-	_deps = new DefaultExtensionDepsContainer(_moduleName);
+	_deps = new DefaultExtensionDepsContainer(handle);
 	_deps->getConfigRetriever().getConfig(true); // initialize default config if not found in ini
 }
 
 inline void deallocateResources() {
 	if (_deps != nullptr) delete _deps;
 	_deps = nullptr;
-	_moduleName = "";
 }
 
 
@@ -33,7 +26,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 			allocateResources(hModule);
 		}
 		catch (exception& ex) {
-			showErrorMessage(ex.what(), _moduleName);
+			showErrorMessage(ex.what(), _backupModuleName);
 			deallocateResources();
 			throw;
 		}
@@ -64,7 +57,8 @@ bool ProcessSentence(wstring& sentence, SentenceInfo sentenceInfo)
 		textLogger.log(sentence, sentInfoWrapper);
 	}
 	catch (exception& ex) {
-		showErrorMessage(ex.what(), _moduleName);
+		string appName = _deps != nullptr ? _deps->moduleName() : _backupModuleName;
+		showErrorMessage(ex.what(), appName);
 	}
 
 	return false;

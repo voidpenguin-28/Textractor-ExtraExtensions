@@ -1,36 +1,46 @@
 #pragma once
 
-#include "ExtensionConfig.h"
-#include "SentenceInfoWrapper.h"
+#include "../Extension.h"
+#include "../ExtensionConfig.h"
+#include "ThreadKeyGenerator.h"
+#include "ThreadTracker.h"
 using FilterMode = ExtensionConfig::FilterMode;
 
 
 class ThreadFilter {
 public:
 	virtual ~ThreadFilter() { }
-	virtual bool isThreadAllowed(const wstring& threadKey,
-		SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const = 0;
+	virtual bool isThreadAllowed(SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const = 0;
 };
 
 
 class NoThreadFilter : public ThreadFilter {
 public:
-	bool isThreadAllowed(const wstring& threadKey, SentenceInfoWrapper& sentInfoWrapper, 
-		const ExtensionConfig& config) const override { return true; }
+	bool isThreadAllowed(SentenceInfoWrapper& sentInfoWrapper,
+		const ExtensionConfig& config) const override {
+		return true;
+	}
 };
 
 class AllThreadFilter : public ThreadFilter {
 public:
-	bool isThreadAllowed(const wstring& threadKey, SentenceInfoWrapper& sentInfoWrapper,
-		const ExtensionConfig& config) const override { return false; }
+	bool isThreadAllowed(SentenceInfoWrapper& sentInfoWrapper,
+		const ExtensionConfig& config) const override {
+		return false;
+	}
 };
 
 
 class DefaultThreadFilter : public ThreadFilter {
 public:
-	bool isThreadAllowed(const wstring& threadKey, 
-		SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const override
+	DefaultThreadFilter(const ThreadKeyGenerator& keyGenerator, ThreadTracker& threadTracker)
+		: _keyGenerator(keyGenerator), _threadTracker(threadTracker) { }
+
+	bool isThreadAllowed(SentenceInfoWrapper& sentInfoWrapper,
+		const ExtensionConfig& config) const override
 	{
+		size_t threadIndex = _threadTracker.trackThreadNameIndex(sentInfoWrapper);
+		wstring threadKey = _keyGenerator.getThreadKey(threadIndex, sentInfoWrapper, config);
 		wstring threadName = sentInfoWrapper.getThreadName();
 
 		switch (config.threadKeyFilterMode) {
@@ -43,12 +53,15 @@ public:
 		}
 	}
 private:
+	const ThreadKeyGenerator& _keyGenerator;
+	ThreadTracker& _threadTracker;
+
 	bool isInList(const wstring& threadKey,
 		const wstring& threadName, const ExtensionConfig& config) const
 	{
 		if (isInList(config.threadKeyFilterList, threadKey, config.threadKeyFilterListDelim)) return true;
 		if (isInList(config.threadKeyFilterList, threadName, config.threadKeyFilterListDelim)) return true;
-		
+
 		return false;
 	}
 
