@@ -151,12 +151,15 @@
     <ClInclude Include="Extension.h" />
     <ClInclude Include="ExtensionConfig.h" />
     <ClInclude Include="ExtensionDepsContainer.h" />
+    <ClInclude Include="ExtExecRequirements.h" />
     <ClInclude Include="HtmlParsers\HtmlParser.h" />
     <ClInclude Include="HtmlParsers\RegexVndbHtmlParser.h" />
     <ClInclude Include="HtmlParsers\StrFindVndbHtmlParser.h" />
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="GenderStrMapper.h" />
     <ClInclude Include="CharMappingConverter.h" />
+    <ClInclude Include="Libraries\FileTracker.h" />
+    <ClInclude Include="Libraries\Locker.h" />
     <ClInclude Include="VnIdsParser.h" />
     <ClInclude Include="ProcessNameRetriever.h" />
     <ClInclude Include="Libraries\strhelper.h" />

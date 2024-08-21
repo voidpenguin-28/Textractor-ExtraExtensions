@@ -1,6 +1,5 @@
 #pragma once
 
-#include <codecvt>
 #include <iostream>
 #include <fstream>
 #include <functional>
@@ -9,6 +8,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
+#include <windows.h>
 using namespace std;
 
 
@@ -45,9 +45,11 @@ public:
 	wstring stringCopy() const;
 	wstring getValue(const wstring& section, const wstring& key, wstring defaultValue = L"") const;
 	int getValue(const wstring& section, const wstring& key, int defaultValue) const;
+	double getValue(const wstring& section, const wstring& key, double defaultValue) const;
 	vector<pair<wstring, wstring>> getAllValues(const wstring& section) const;
 	bool setValue(const wstring& section, const wstring& key, wstring value, bool overrideIfExists = true);
 	bool setValue(const wstring& section, const wstring& key, int value, bool overrideIfExists = true);
+	bool setValue(const wstring& section, const wstring& key, double value, bool overrideIfExists = true);
 	bool removeValue(const wstring& section, const wstring& key);
 	bool removeSection(const wstring& section);
 private:
@@ -86,29 +88,33 @@ private:
 class IniFileHandler {
 public:
 	IniFileHandler(const string& iniFilePath) : _iniFilePath(iniFilePath) { }
-	
+
 	IniContents* readIni() const;
 	void saveIni(IniContents& content, const string& newFilePath = "") const;
 private:
 	const string _iniFilePath;
 	mutable mutex _mutex;
 
-	void _saveIni(IniContents& content, const string& newFilePath = "") const;
-	void _saveIni(const wstring& content, const string& newFilePath = "") const;
-	IniContents* readIni_() const;
-
-	vector<wstring> getIniFileContents() const;
+	void saveIniFileContents(const string& content, const string& newFilePath = "") const;
+	string getIniFileContents() const;
+	IniContents* parseIniFileContents(const string& fileContents) const;
 	vector<wstring> splitLines(const wstring& text) const;
 };
 
 class StrConverter {
 public:
 	static wstring convertToW(const string& str) {
-		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
+		int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+		wstring wstr(count, 0);
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
+		return wstr;
 	}
 
-	static string convertFromW(const wstring& str) {
-		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().to_bytes(str);
+	static string convertFromW(const wstring& wstr) {
+		int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
+		string str(count, 0);
+		WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, NULL, NULL);
+		return str;
 	}
 };
 

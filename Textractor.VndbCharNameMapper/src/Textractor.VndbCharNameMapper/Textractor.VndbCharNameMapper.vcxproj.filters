@@ -27,6 +27,9 @@
     <ClInclude Include="CharMappingConverter.h" />
     <ClInclude Include="HtmlParsers\RegexVndbHtmlParser.h" />
     <ClInclude Include="HtmlParsers\StrFindVndbHtmlParser.h" />
+    <ClInclude Include="ExtExecRequirements.h" />
+    <ClInclude Include="Libraries\FileTracker.h" />
+    <ClInclude Include="Libraries\Locker.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Libraries">

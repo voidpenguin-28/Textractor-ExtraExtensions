@@ -2,6 +2,7 @@
 
 #include "Extension.h"
 #include "ExtensionConfig.h"
+#include "ExtExecRequirements.h"
 #include "NameMapper.h"
 #include "NameRetriever.h"
 #include "VnIdsParser.h"
@@ -16,52 +17,27 @@ public:
 
 class DefaultNameMappingManager : public NameMappingManager {
 public:
-	DefaultNameMappingManager(const ConfigRetriever& configRetriever,
-		const NameMapper& nameMapper, NameRetriever& nameRetriever, const VnIdsParser& vnIdsParser)
+	DefaultNameMappingManager(ConfigRetriever& configRetriever,
+		const NameMapper& nameMapper, NameRetriever& nameRetriever, 
+		const VnIdsParser& vnIdsParser, const ExtExecRequirements& execRequirements)
 		: _configRetriever(configRetriever), _nameMapper(nameMapper), 
-			_nameRetriever(nameRetriever), _vnIdsParser(vnIdsParser) { }
+			_nameRetriever(nameRetriever), _vnIdsParser(vnIdsParser),
+			_execRequirements(execRequirements) { }
 
 	wstring applyAllNameMappings(const wstring& sentence, SentenceInfoWrapper& sentInfoWrapper) override {
-		ExtensionConfig config = _configRetriever.getConfig();
-		if (!isAllowed(config, sentInfoWrapper)) return sentence;
+		ExtensionConfig config = _configRetriever.getConfig(false);
+		if (!_execRequirements.meetsRequirements(sentInfoWrapper, config)) return sentence;
 
 		vector<string> vnIdList = _vnIdsParser.parse(config, sentInfoWrapper);
 		wstring newSentence = applyAllNameMappings(vnIdList, sentence, config);
 		return newSentence;
 	}
 private:
-	const ConfigRetriever& _configRetriever;
+	ConfigRetriever& _configRetriever;
 	const NameMapper& _nameMapper;
 	NameRetriever& _nameRetriever;
 	const VnIdsParser& _vnIdsParser;
-
-	bool isAllowed(const ExtensionConfig& config, SentenceInfoWrapper& sentInfoWrapper) {
-		if (config.disabled) return false;
-		if (config.activeThreadOnly && !sentInfoWrapper.isActiveThread()) return false;
-		if (!meetsConsoleAndClipboardRequirements(sentInfoWrapper, config)) return false;
-
-		return true;
-	}
-
-	bool meetsConsoleAndClipboardRequirements(
-		SentenceInfoWrapper& sentInfoWrapper, const ExtensionConfig& config) const
-	{
-		wstring threadName = sentInfoWrapper.getThreadName();
-
-		switch (config.skipConsoleAndClipboard) {
-		case 1:
-			if (sentInfoWrapper.threadIsConsoleOrClipboard()) return false;
-			break;
-		case 2:
-			if (threadName == L"Console") return false;
-			break;
-		case 3:
-			if (threadName == L"Clipboard") return false;
-			break;
-		}
-
-		return true;
-	}
+	const ExtExecRequirements& _execRequirements;
 
 	wstring applyAllNameMappings(const vector<string> vnIdList, 
 		wstring sentence, const ExtensionConfig& config) const

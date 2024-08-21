@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Libraries/inihandler.h"
+#include "Libraries/Locker.h"
 #include "Libraries/strhelper.h"
 #include "HtmlParsers/HtmlParser.h"
 #include "GenderStrMapper.h"
@@ -57,7 +58,7 @@ private:
 
 		string urlTemplate = _urlTemplateGetter();
 		size_t tmplIndex = urlTemplate.find(tmplPar);
-		if (tmplIndex == string::npos) runtime_error(errMsg + urlTemplate);
+		if (tmplIndex == string::npos) throw runtime_error(errMsg + urlTemplate);
 
 		return urlTemplate.replace(tmplIndex, tmplPar.length(), vnId);
 	}
@@ -78,23 +79,25 @@ public:
 
 	CharMappings getNameMappings(const string& vnId) override {
 		if (vnId.empty()) return CharMappings();
-		lock_guard<mutex> lock(_mutex);
 		bool reloadCache = _reloadCacheGetter();
 		CharMappings map;
+		
+		_locker.lock([this, &vnId, reloadCache, &map]() {
+			if (!reloadCache) {
+				map = getMapFromCache(vnId);
+				if (!map.fullNameMap.empty()) return;
+			}
 
-		if (!reloadCache) {
-			map = getMapFromCache(vnId);
-			if (!map.fullNameMap.empty()) return map;
-		}
+			map = _mainRetriever.getNameMappings(vnId);
+			saveMapToCache(vnId, map);
+		});
 
-		map = _mainRetriever.getNameMappings(vnId);
-		saveMapToCache(vnId, map);
 		return map;
 	}
 protected:
 	NameRetriever& _mainRetriever;
 	const function<bool()> _reloadCacheGetter;
-	mutable mutex _mutex;
+	mutable BasicLocker _locker;
 
 	virtual CharMappings getMapFromCache(const string& vnId) const = 0;
 	virtual void saveMapToCache(const string& vnId, const CharMappings& map) = 0;

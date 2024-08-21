@@ -2,11 +2,11 @@
 #include "curlproc.h"
 #include <windows.h>
 #include <stdexcept>
-#include <codecvt>
 
 
 namespace curlproc {
-#define BUFSIZE 4096
+    static constexpr DWORD BUFSIZE = 4096;
+
 	string buildCurlCommand(const string& url, const string& method = "GET", const string& postData = "", const vector<string>& headers = vector<string>(), const string& userAgent = "", const string& customCurlPath = "");
 	string formatPath(string path);
 	string replace(const string& input, const string& target, const string& replacement);
@@ -75,7 +75,7 @@ namespace curlproc {
         HANDLE g_hChildStd_OUT_Wr = NULL;
         HANDLE g_hChildStd_ERR_Rd = NULL;
         HANDLE g_hChildStd_ERR_Wr = NULL;
-        SECURITY_ATTRIBUTES sa;
+        SECURITY_ATTRIBUTES sa{};
 
         // Set the bInheritHandle flag so pipe handles are inherited.
         sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -126,7 +126,7 @@ namespace curlproc {
 
         // read output
         DWORD dwRead;
-        CHAR chBuf[BUFSIZE];
+        CHAR chBuf[BUFSIZE]{};
         bool bSuccess2 = FALSE;
 
         for (;;) { // read stdout
@@ -157,7 +157,10 @@ namespace curlproc {
 	}
 
     wstring convertToW(const string& str) {
-        return wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
+        int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+        wstring wstr(count, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
+        return wstr;
     }
 
 }

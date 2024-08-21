@@ -51,6 +51,7 @@ private:
 
 	wstring formatProcessName(wstring processName) const {
 		size_t periodIndex = processName.rfind(PERIOD_CH);
+
 		if (periodIndex != wstring::npos) {
 			processName = processName.substr(0, periodIndex);
 		}

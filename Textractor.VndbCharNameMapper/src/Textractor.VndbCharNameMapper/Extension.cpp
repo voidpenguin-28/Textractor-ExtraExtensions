@@ -5,35 +5,26 @@
 #include <string>
 using namespace std;
 
-string _moduleName = "";
-ExtensionDepsContainer* _deps = nullptr;
+const string _backupModuleName = "VndbCharNameMapper";
+unique_ptr<ExtensionDepsContainer> _deps = nullptr;
 
 
 inline void allocateResources(const HMODULE& hModule) {
-	_moduleName = getModuleName(hModule);
-	_deps = new DefaultExtensionDepsContainer(_moduleName);
+	_deps = make_unique<DefaultExtensionDepsContainer>(hModule);
 	_deps->getConfigRetriever().getConfig(true); // define default config if no config found
 }
 
 inline void deallocateResources() {
-	if(_deps != nullptr) delete _deps;
 	_deps = nullptr;
-	_moduleName = "";
 }
+
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
-			try {
-				allocateResources(hModule);
-			}
-			catch (exception& ex) {
-				showErrorMessage(ex.what(), _moduleName);
-				deallocateResources();
-				throw;
-			}
+			allocateResources(hModule);
 			break;
 		case DLL_PROCESS_DETACH:
 			deallocateResources();
@@ -62,7 +53,8 @@ bool ProcessSentence(wstring& sentence, SentenceInfo sentenceInfo)
 		return true;
 	}
 	catch (exception& ex) {
-		showErrorMessage(ex.what(), _moduleName);
+		string moduleName = _deps != nullptr ? _deps->moduleName() : _backupModuleName;
+		showErrorMessage(ex.what(), moduleName);
 		return false;
 	}
 }

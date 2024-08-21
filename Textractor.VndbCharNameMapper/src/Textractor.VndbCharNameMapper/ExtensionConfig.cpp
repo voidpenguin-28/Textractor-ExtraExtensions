@@ -1,8 +1,7 @@
 
 #include "ExtensionConfig.h"
 #include "Libraries/strhelper.h"
-#include <functional>
-#include <stdexcept>
+using ConsoleClipboardMode = ExtensionConfig::ConsoleClipboardMode;
 
 const wstring DISABLED_KEY = L"Disabled";
 const wstring URL_TEMPLATE_KEY = L"UrlTemplate";
@@ -23,11 +22,7 @@ bool IniConfigRetriever::configSectionExists() const {
 	return ini->sectionExists(_iniSectionName);
 }
 
-bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
-	return ini.keyExists(_iniSectionName, key);
-}
-
-void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) const {
+void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) {
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
 	bool changed = false;
 
@@ -45,7 +40,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	if (changed) _iniHandler.saveIni(*ini);
 }
 
-ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) const {
+ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) {
 	if (saveDefaultConfigIfNotExist) setDefaultConfig(false);
 
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
@@ -56,10 +51,11 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, URL_TEMPLATE_KEY, DefaultConfig.urlTemplate),
 		StrHelper::trim<wchar_t>(getValOrDef(*ini, VN_IDS_KEY, DefaultConfig.vnIds), L"\""),
 		getValOrDef(*ini, VN_ID_DELIM_KEY, DefaultConfig.vnIdDelim),
-		static_cast<MappingMode>(getValOrDef(*ini, MAPPING_MODE_KEY, DefaultConfig.mappingMode)),
+		getValOrDef<MappingMode>(*ini, MAPPING_MODE_KEY, DefaultConfig.mappingMode),
 		getValOrDef(*ini, MIN_NAME_SIZE_KEY, DefaultConfig.minNameCharSize),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, DefaultConfig.activeThreadOnly),
-		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, DefaultConfig.skipConsoleAndClipboard),
+		getValOrDef<ConsoleClipboardMode>(*ini, 
+			SKIP_CONSOLE_AND_CLIPBOARD_KEY, DefaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, RELOAD_CACHE_ON_LAUNCH_KEY, DefaultConfig.reloadCacheOnLaunch),
 		getValOrDef(*ini, CUSTOM_CURL_PATH_KEY, DefaultConfig.customCurlPath)
 	);
@@ -70,25 +66,29 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 
 // *** PRIVATE
 
-bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	const wstring& value, bool overrideIfExists) const
+bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
+	return ini.keyExists(_iniSectionName, key);
+}
+
+bool IniConfigRetriever::setValue(IniContents& ini, 
+	const wstring& key, const wstring& value, bool overrideIfExists)
 {
 	return ini.setValue(_iniSectionName, key, value, overrideIfExists);
 }
 
-bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	const string& value, bool overrideIfExists) const
+bool IniConfigRetriever::setValue(IniContents& ini, 
+	const wstring& key, const string& value, bool overrideIfExists)
 {
 	return setValue(ini, key, StrHelper::convertToW(value), overrideIfExists);
 }
 
-bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	int value, bool overrideIfExists) const
+bool IniConfigRetriever::setValue(IniContents& ini, 
+	const wstring& key, int value, bool overrideIfExists)
 {
 	return setValue(ini, key, to_wstring(value), overrideIfExists);
 }
 
-void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) const {
+void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) {
 	saveConfig(DefaultConfig, overrideIfExists);
 }
 
@@ -103,4 +103,9 @@ string IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, str
 
 int IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
 	return ini.getValue(_iniSectionName, key, defaultValue);
+}
+
+template<typename T>
+T IniConfigRetriever::getValOrDef(IniContents& ini, const wstring& key, int defaultValue) const {
+	return static_cast<T>(getValOrDef(ini, key, defaultValue));
 }
