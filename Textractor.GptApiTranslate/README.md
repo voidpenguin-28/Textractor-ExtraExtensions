@@ -71,16 +71,6 @@ https://platform.openai.com/docs/api-reference/chat
 			- Ex: "Google Translate", "DevTools DeepL Translate"
 		- An extension's order can be changed by clicking and dragging it.
 		- ![Extension Order](img/extension-order.png)
-4. **This extension relies on *curl.exe* to perform network requests to the GPT API. Ensure that curl is installed on your machine.**
-	- **curl** is already installed/available on [all versions of Windows 11] & [Windows 10 ver.1803 or later].
-		- Versions of curl pre-packaged with Windows can be found here: C:\Windows\System32\curl.exe
-	- A quick way to test if curl is installed/available is to open a command prompt (cmd.exe), then simply type "curl".
-		- If curl is found, you should get a message like "*curl: try 'curl --help' for more information*"
-		- If curl is not found, you should get a message like "*'curl' is not recognized as an internal or external command,
-operable program or batch file.*"
-		- ![Curl Check](img/curl-check.png)
-	- If you do not have curl on your machine, you can download/install it from here: https://curl.se/download.html#Win32
-	- If you would like to use a portable version of curl with this extension, you can configure a custom curl path for the extension to use. Reference the [Config Values](#config-values) section of this document for further details.
 
 
 ## How to Use
@@ -301,7 +291,7 @@ Here is the list of currently supported config values for this extension.
 			- Latest version can be found in releases: https://github.com/voidpenguin-28/Textractor-ExtraExtensions/releases
 			- In the Textractor extension list, the *VndbCharNameMapper* extension must be placed **before** the *GptApiTranslate* extension.
 		2. Open the Textractor ini config file (*Textractor.ini*), and go to the VndbCharNameMapper config section *[Textractor.VndbCharNameMapper]*. Then apply the following config changes.
-			- Set the **MappingMode** to 0. This ensures that te VndbCharNameMapper extension itself does not apply any mappings to the text, but will still retrieve/store/cache the name mappings.
+			- Set the **MappingMode** to 0. This ensures that the VndbCharNameMapper extension itself does not apply any mappings to the text, but will still retrieve/store/cache the name mappings.
 			- Set the **VnIds** config value to the correct visual novel. Reference [**VndbCharNameMapper**](https://github.com/voidpenguin-28/Textractor-ExtraExtensions/tree/main/Textractor.VndbCharNameMapper#config-values) documentation if more info on this config value is needed.
 		3. Go to the GptApiTranslate extension's ini config and set the **NameMappingMode** to the desired mode.
 	- Possible values:
@@ -486,23 +476,7 @@ Here is the list of currently supported config values for this extension.
 25. **ThreadKeyFilterListDelim**: The separator/delimiter to use to distinguish each thread key/name listed in the "ThreadKeyFilterMode" config value.
 	- Default value: '|'
 	- If you changed this value to ';', then you would have to define the filter list like so: '*GetGlyphOutlineA-1;GetCharABCWidthsA;GetGlyphOutlineA-2*'
-26. **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
-	- Default value: '' (blank value indicates to use system curl path)
-	- As previously stated, curl is necessary for this extension to perform network requests.
-	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
-	- If you would like to use curl from a different location (ex: portable version of curl), then you can specify the directory path where curl is located here.
-	- Important notes:
-		- Only include the **directory** path, not the curl executable itself.
-			- Ex: '*C:/curl-win/*' instead of '*C:/curl-win/curl.exe*'
-		- If you use backslashes in your path, **please double the backslashes**
-			- Ex: '*C:\\\\curl-win\\\\*' instead of '*C:\\curl-win\\*'
-			```ini
-			[Textractor.VndbCharNameMapper]
-			;;...omitted...
-			CustomCurlPath=C:\\curl-win\\
-			;;...omitted...
-			```
-27. **DebugMode**: Allows you to log GPT request and response data to a log file.
+26. **DebugMode**: Allows you to log GPT request and response data to a log file.
 	- Default value: '0' (do not log any data to file)
 	- Request/response data will be logged to file if this config value is set to '1'.
 	- The log file will be called "gpt-request-log.txt" and will be located in the root directory of Textractor.
@@ -549,6 +523,37 @@ Here is the list of currently supported config values for this extension.
 		}
 		```
 
+<br>
+
+**Deprecated Config Values**
+
+The following config values are no longer used in the latest version of this extension.
+
+* **CustomCurlPath**: Specifies a custom directory path for where *curl.exe* is located.
+	- **This config value is no longer used starting from v1.4.0, since the extension switched from using the curl command line to the libcurl library. The below information only applies to extension versions before this.**
+	- Default value: '' (blank value indicates to use system curl path)
+	- Curl is necessary for earlier version of this extension to perform network requests.
+		- **curl** is already installed/available on [all versions of Windows 11] & [Windows 10 ver.1803 or later].
+			- Versions of curl pre-packaged with Windows can be found here: C:\Windows\System32\curl.exe
+		- A quick way to test if curl is installed/available is to open a command prompt (cmd.exe), then simply type "curl".
+			- If curl is found, you should get a message like "*curl: try 'curl --help' for more information*"
+			- If curl is not found, you should get a message like "*'curl' is not recognized as an internal or external command,
+	operable program or batch file.*"
+			- ![Curl Check](img/curl-check.png)
+		- If you do not have curl on your machine, you can download/install it from here: https://curl.se/download.html#Win32
+	- By default, this extension uses whatever curl path that is specified by your system's PATH variable.
+		- If you would like to use curl from a different location (ex: portable version of curl), then you can specify the directory path where curl is located here.
+	- Important notes:
+		- Only include the **directory** path, not the curl executable itself.
+			- Ex: '*C:/curl-win/*' instead of '*C:/curl-win/curl.exe*'
+		- If you use backslashes in your path, **please double the backslashes**
+			- Ex: '*C:\\\\curl-win\\\\*' instead of '*C:\\curl-win\\*'
+			```ini
+			[Textractor.VndbCharNameMapper]
+			;;...omitted...
+			CustomCurlPath=C:\\curl-win\\
+			;;...omitted...
+			```
 
 <br>
 
@@ -583,6 +588,5 @@ CustomHttpHeaders=
 ThreadKeyFilterMode=0
 ThreadKeyFilterList=
 ThreadKeyFilterListDelim=|
-CustomCurlPath=
 DebugMode=0
 ```

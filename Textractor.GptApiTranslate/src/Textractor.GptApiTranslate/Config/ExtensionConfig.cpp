@@ -1,6 +1,7 @@
 
 #include "ExtensionConfig.h"
 #include "../_Libraries/strhelper.h"
+using ConsoleClipboardMode = ExtensionConfig::ConsoleClipboardMode;
 using FilterMode = ExtensionConfig::FilterMode;
 using NameMappingMode = ExtensionConfig::NameMappingMode;
 
@@ -30,7 +31,6 @@ const wstring CUSTOM_HTTP_HEADERS_KEY = L"CustomHttpHeaders";
 const wstring THREAD_KEY_FILTER_MODE_KEY = L"ThreadKeyFilterMode";
 const wstring THREAD_KEY_FILTER_LIST_KEY = L"ThreadKeyFilterList";
 const wstring THREAD_KEY_FILTER_LIST_DELIM_KEY = L"ThreadKeyFilterListDelim";
-const wstring CUSTOM_CURL_PATH_KEY = L"CustomCurlPath";
 const wstring DEBUG_MODE_KEY = L"DebugMode";
 
 
@@ -41,16 +41,11 @@ bool IniConfigRetriever::configSectionExists() const {
 	return ini->sectionExists(_iniSectionName);
 }
 
-bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
-	return ini.keyExists(_iniSectionName, key);
-}
-
-void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) const {
+void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool overrideIfExists) {
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
 	bool changed = false;
 
 	changed |= setValue(*ini, DEBUG_MODE_KEY, config.debugMode, overrideIfExists);
-	changed |= setValue(*ini, CUSTOM_CURL_PATH_KEY, config.customCurlPath, overrideIfExists);
 	changed |= setValue(*ini, THREAD_KEY_FILTER_LIST_DELIM_KEY, config.threadKeyFilterListDelim, overrideIfExists);
 	changed |= setValue(*ini, THREAD_KEY_FILTER_LIST_KEY, config.threadKeyFilterList, overrideIfExists);
 	changed |= setValue(*ini, THREAD_KEY_FILTER_MODE_KEY, config.threadKeyFilterMode, overrideIfExists);
@@ -80,7 +75,7 @@ void IniConfigRetriever::saveConfig(const ExtensionConfig& config, bool override
 	if(changed) _iniHandler.saveIni(*ini);
 }
 
-ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) const {
+ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) {
 	if (saveDefaultConfigIfNotExist) setDefaultConfig(false);
 
 	auto ini = unique_ptr<IniContents>(_iniHandler.readIni());
@@ -88,7 +83,7 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 
 	ExtensionConfig config = ExtensionConfig(
 		getValOrDef(*ini, DISABLED_KEY, defaultConfig.disabled),
-		getValOrDef(*ini, URL_KEY, defaultConfig.url),
+		StrHelper::trim<char>(getValOrDef(*ini, URL_KEY, defaultConfig.url), "\""),
 		getValOrDef(*ini, APIKEY_KEY, defaultConfig.apiKey),
 		getValOrDef(*ini, MODEL_KEY, defaultConfig.model),
 		getValOrDef(*ini, TIMEOUT_SECS_KEY, defaultConfig.timeoutSecs),
@@ -97,7 +92,8 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef(*ini, USER_MSG_PREFIX_KEY, defaultConfig.userMsgPrefix),
 		getValOrDef<NameMappingMode>(*ini, NAME_MAPPING_MODE_KEY, defaultConfig.nameMappingMode),
 		getValOrDef(*ini, ACTIVE_THREAD_ONLY_KEY, defaultConfig.activeThreadOnly),
-		getValOrDef(*ini, SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
+		getValOrDef<ConsoleClipboardMode>(*ini, 
+			SKIP_CONSOLE_AND_CLIPBOARD_KEY, defaultConfig.skipConsoleAndClipboard),
 		getValOrDef(*ini, USE_HIST_FOR_NONACTIVE_THREADS_KEY, defaultConfig.useHistoryForNonActiveThreads),
 		getValOrDef(*ini, MSG_HISTORY_COUNT_KEY, defaultConfig.msgHistoryCount),
 		getValOrDef(*ini, HIST_SOFT_CHAR_LIMIT_KEY, defaultConfig.historySoftCharLimit),
@@ -112,7 +108,6 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 		getValOrDef<FilterMode>(*ini, THREAD_KEY_FILTER_MODE_KEY, defaultConfig.threadKeyFilterMode),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_KEY, defaultConfig.threadKeyFilterList),
 		getValOrDef(*ini, THREAD_KEY_FILTER_LIST_DELIM_KEY, defaultConfig.threadKeyFilterListDelim),
-		getValOrDef(*ini, CUSTOM_CURL_PATH_KEY, defaultConfig.customCurlPath),
 		getValOrDef(*ini, DEBUG_MODE_KEY, defaultConfig.debugMode)
 	);
 
@@ -122,25 +117,29 @@ ExtensionConfig IniConfigRetriever::getConfig(bool saveDefaultConfigIfNotExist) 
 
 // *** PRIVATE
 
+bool IniConfigRetriever::configKeyExists(IniContents& ini, const wstring& key) const {
+	return ini.keyExists(_iniSectionName, key);
+}
+
 bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key, 
-	const wstring& value, bool overrideIfExists) const
+	const wstring& value, bool overrideIfExists)
 {
 	return ini.setValue(_iniSectionName, key, value, overrideIfExists);
 }
 
 bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	const string& value, bool overrideIfExists) const
+	const string& value, bool overrideIfExists)
 {
 	return setValue(ini, key, StrHelper::convertToW(value), overrideIfExists);
 }
 
 bool IniConfigRetriever::setValue(IniContents& ini, const wstring& key,
-	int value, bool overrideIfExists) const
+	int value, bool overrideIfExists)
 {
 	return setValue(ini, key, to_wstring(value), overrideIfExists);
 }
 
-void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) const {
+void IniConfigRetriever::setDefaultConfig(bool overrideIfExists) {
 	saveConfig(DefaultConfig, overrideIfExists);
 }
 

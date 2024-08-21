@@ -2,6 +2,7 @@
 
 #include "../_Libraries/inihandler.h"
 #include "../_Libraries/strhelper.h"
+#include "../_Libraries/Locker.h"
 #include "GenderStrMapper.h"
 #include <functional>
 
@@ -28,23 +29,25 @@ public:
 
 	CharMappings getNameMappings(const string& vnId) override {
 		if (vnId.empty()) return CharMappings();
-		lock_guard<mutex> lock(_mutex);
 		bool reloadCache = _reloadCacheGetter();
 		CharMappings map;
 
-		if (!reloadCache) {
-			map = getMapFromCache(vnId);
-			if (!map.fullNameMap.empty()) return map;
-		}
+		_locker.lock([this, &vnId, reloadCache, &map]() {
+			if (!reloadCache) {
+				map = getMapFromCache(vnId);
+				if (!map.fullNameMap.empty()) return;
+			}
 
-		map = _mainRetriever.getNameMappings(vnId);
-		saveMapToCache(vnId, map);
+			map = _mainRetriever.getNameMappings(vnId);
+			saveMapToCache(vnId, map);
+		});
+
 		return map;
 	}
 protected:
 	NameRetriever& _mainRetriever;
 	const function<bool()> _reloadCacheGetter;
-	mutable mutex _mutex;
+	mutable BasicLocker _locker;
 
 	virtual CharMappings getMapFromCache(const string& vnId) const = 0;
 	virtual void saveMapToCache(const string& vnId, const CharMappings& map) = 0;

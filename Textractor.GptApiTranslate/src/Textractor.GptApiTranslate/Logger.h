@@ -1,9 +1,9 @@
 
 #pragma once
 #include "_Libraries/datetime.h"
+#include "_Libraries/Locker.h"
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <string>
 using namespace std;
 
@@ -78,6 +78,7 @@ public:
 	void log(const Level level, const string& msg) const { }
 };
 
+
 class FileLogger : public Logger {
 public:
 	FileLogger(const string& logFilePath, Level minLogLevel = Level::Debug)
@@ -85,13 +86,14 @@ public:
 
 protected:
 	string _logFilePath;
-	mutable mutex _logMutex;
+	mutable BasicLocker _locker;
 
 	void writeToLog(const string& msg) const {
-		lock_guard<mutex> lock(_logMutex);
-		ofstream file(_logFilePath, ios_base::app);
-		file << msg << endl;
-		file.close();
+		_locker.lock([this, &msg]() {
+			ofstream file(_logFilePath, ios_base::app);
+			file << msg << endl;
+			file.close();
+		});
 	}
 };
 

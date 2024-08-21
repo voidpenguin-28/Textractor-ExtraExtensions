@@ -1,8 +1,8 @@
 #pragma once
 
-#include <codecvt>
 #include <string>
 #include <vector>
+#include <windows.h>
 using namespace std;
 
 template<class charT>
@@ -10,6 +10,15 @@ using string_base = basic_string<charT, char_traits<charT>, allocator<charT>>;
 
 
 class StrHelper {
+private:
+	template<class charT>
+	static pair<string_base<charT>, string_base<charT>> getDefaultPlaceholderWrapper() {
+		static const string_base<charT> _prfx(1, (charT)123); // "{"
+		static const string_base<charT> _sfx(1, (charT)125); // "}"
+		static const pair<string_base<charT>, string_base<charT>> _wrapper(_prfx, _sfx);
+
+		return _wrapper;
+	}
 public:
 	template<class charT>
 	static string_base<charT> replace(string_base<charT> str,
@@ -28,7 +37,7 @@ public:
 
 	template<class charT>
 	static string_base<charT> join(const string_base<charT>& delim, const vector<string_base<charT>>& strArr) {
-		string_base<charT> str = L"";
+		string_base<charT> str = getBlank<charT>();
 
 		for (size_t i = 0; i < strArr.size(); i++) {
 			str += strArr[i] + delim;
@@ -117,11 +126,14 @@ public:
 	}
 
 	template<class charT>
-	static string_base<charT> format(string_base<charT> str, const vector<string_base<charT>> pars) {
+	static string_base<charT> format(string_base<charT> str,
+		const vector<string_base<charT>> pars, const size_t startIndex = 0,
+		const pair<string_base<charT>, string_base<charT>>& phWrapper = getDefaultPlaceholderWrapper<charT>())
+	{
 		string_base<charT> placeholder;
 
-		for (size_t i = 0; i < pars.size(); i++) {
-			placeholder = createPlaceholder<charT>(i);
+		for (size_t i = 0, j = i + startIndex; i < pars.size(); i++, j++) {
+			placeholder = createPlaceholder<charT>(j, phWrapper);
 			str = replace<charT>(str, placeholder, pars[i]);
 		}
 
@@ -129,11 +141,17 @@ public:
 	}
 
 	static wstring convertToW(const string& str) {
-		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
+		int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+		wstring wstr(count, 0);
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
+		return wstr;
 	}
 
-	static string convertFromW(const wstring& str) {
-		return wstring_convert<codecvt_utf8_utf16<wchar_t>>().to_bytes(str);
+	static string convertFromW(const wstring& wstr) {
+		int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
+		string str(count, 0);
+		WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, NULL, NULL);
+		return str;
 	}
 
 private:
@@ -144,10 +162,14 @@ private:
 	}
 
 	template<class charT>
-	static string_base<charT> createPlaceholder(size_t i) {
-		static const string_base<charT> prfx(1, (charT)123); // "{"
-		static const string_base<charT> sfx(1, (charT)125); // "}"
+	static string_base<charT> getBlank() {
+		return string_base<charT>();
+	}
 
-		return prfx + _Integral_to_string<charT>(i) + sfx;
+	template<class charT>
+	static string_base<charT> createPlaceholder(size_t i,
+		const pair<string_base<charT>, string_base<charT>>& phWrapper)
+	{
+		return phWrapper.first + _Integral_to_string<charT>(i) + phWrapper.second;
 	}
 };

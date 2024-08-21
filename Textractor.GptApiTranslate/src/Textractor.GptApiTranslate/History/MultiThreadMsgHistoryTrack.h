@@ -1,11 +1,11 @@
 #pragma once
 #include "../Extension.h"
+#include "../_Libraries/Locker.h"
 #include "../Threading/ThreadKeyGenerator.h"
 #include "../Threading/ThreadTracker.h"
 #include "MsgHistoryTrack.h"
 #include <functional>
 #include <memory>
-#include <mutex>
 
 
 class MultiThreadMsgHistoryTracker {
@@ -37,7 +37,7 @@ private:
 	ThreadTracker& _threadTracker;
 	const function<MsgHistoryTracker*()> _histTrackerGenerator;
 	unordered_map<wstring, shared_ptr<MsgHistoryTracker>> _trackerMap;
-	mutable mutex _mutex;
+	mutable BasicLocker _locker;
 
 	wstring getThreadKey(SentenceInfoWrapper& sentInfoWrapper) const {
 		size_t threadIndex = _threadTracker.trackThreadNameIndex(sentInfoWrapper);
@@ -51,9 +51,14 @@ private:
 	}
 
 	shared_ptr<MsgHistoryTracker> getHistTracker(const wstring& threadKey) {
-		lock_guard<mutex> lock(_mutex);
-		addHistTrackerIfNotExist(threadKey);
-		return _trackerMap[threadKey];
+		shared_ptr<MsgHistoryTracker> trackerPtr = nullptr;
+
+		_locker.lock([this, &threadKey, &trackerPtr]() {
+			addHistTrackerIfNotExist(threadKey);
+			trackerPtr = _trackerMap[threadKey];
+		});
+
+		return trackerPtr;
 	}
 
 	void addHistTrackerIfNotExist(const wstring& threadKey) {

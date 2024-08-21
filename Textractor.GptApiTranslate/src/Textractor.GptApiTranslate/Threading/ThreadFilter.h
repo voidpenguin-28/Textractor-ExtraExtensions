@@ -41,7 +41,7 @@ public:
 	{
 		size_t threadIndex = _threadTracker.trackThreadNameIndex(sentInfoWrapper);
 		wstring threadKey = _keyGenerator.getThreadKey(threadIndex, sentInfoWrapper);
-		wstring threadName = sentInfoWrapper.getThreadName();
+		wstring threadName = sentInfoWrapper.getThreadNameW();
 
 		switch (config.threadKeyFilterMode) {
 		case FilterMode::Blacklist:

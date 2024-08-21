@@ -142,20 +142,17 @@
   <ItemGroup>
     <ClCompile Include="Extension.cpp" />
     <ClCompile Include="Config\ExtensionConfig.cpp" />
-    <ClCompile Include="Network\GptApiCaller.cpp" />
-    <ClCompile Include="Text\ApiMsgHelper.cpp" />
-    <ClCompile Include="Translator.cpp" />
-    <ClCompile Include="History\MsgHistoryTrack.cpp" />
     <ClCompile Include="ExtensionImpl.cpp" />
+    <ClCompile Include="Network\HttpClient.cpp" />
     <ClCompile Include="_Libraries\curlproc.cpp" />
     <ClCompile Include="_Libraries\inihandler.cpp" />
-    <ClCompile Include="Text\TranslationFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config\Common.h" />
     <ClInclude Include="Extension.h" />
     <ClInclude Include="Config\ExtensionConfig.h" />
     <ClInclude Include="ExtensionDepsContainer.h" />
+    <ClInclude Include="ExtExecRequirements.h" />
     <ClInclude Include="History\MultiThreadMsgHistoryTrack.h" />
     <ClInclude Include="NameMapping\CharMappings.h" />
     <ClInclude Include="NameMapping\GenderStrMapper.h" />
@@ -174,7 +171,9 @@
     <ClInclude Include="History\MsgHistoryTrack.h" />
     <ClInclude Include="_Libraries\datetime.h" />
     <ClInclude Include="_Libraries\curlproc.h" />
+    <ClInclude Include="_Libraries\FileTracker.h" />
     <ClInclude Include="_Libraries\inihandler.h" />
+    <ClInclude Include="_Libraries\Locker.h" />
     <ClInclude Include="_Libraries\regex\RE2Regex.h" />
     <ClInclude Include="_Libraries\regex\Regex.h" />
     <ClInclude Include="_Libraries\regex\StdLibRegex.h" />

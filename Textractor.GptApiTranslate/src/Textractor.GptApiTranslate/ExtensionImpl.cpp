@@ -18,7 +18,8 @@ extern "C" __declspec(dllexport) wchar_t* OnNewSentence(wchar_t* sentence, const
 	try
 	{
 		std::wstring sentenceCopy(sentence);
-		int oldSize = sentenceCopy.size();
+		size_t oldSize = sentenceCopy.size();
+
 		if (ProcessSentence(sentenceCopy, SentenceInfo{ sentenceInfo }))
 		{
 			if (sentenceCopy.size() > oldSize) sentence = (wchar_t*)HeapReAlloc(GetProcessHeap(), HEAP_GENERATE_EXCEPTIONS, sentence, (sentenceCopy.size() + 1) * sizeof(wchar_t));

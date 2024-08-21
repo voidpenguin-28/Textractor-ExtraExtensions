@@ -4,6 +4,7 @@
 #include "ExtensionDepsContainer.h"
 #include <string>
 
+
 void applyTranslationToSentence(wstring& sentence, const wstring& translation);
 
 ExtensionDepsContainer* _deps = nullptr;

@@ -164,7 +164,9 @@ namespace curlproc {
 	}
 
     wstring convertToW(const string& str) {
-        return wstring_convert<codecvt_utf8_utf16<wchar_t>>().from_bytes(str);
+        int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+        wstring wstr(count, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &wstr[0], count);
+        return wstr;
     }
-
 }

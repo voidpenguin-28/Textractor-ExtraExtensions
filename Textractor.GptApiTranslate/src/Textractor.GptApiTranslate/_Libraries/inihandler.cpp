@@ -114,6 +114,11 @@ int IniContents::getValue(const wstring& section, const wstring& key, int defaul
 	return stoi(value);
 }
 
+double IniContents::getValue(const wstring& section, const wstring& key, double defaultValue) const {
+	wstring value = getValue(section, key, to_wstring(defaultValue));
+	return stod(value);
+}
+
 vector<pair<wstring, wstring>> IniContents::getAllValues(const wstring& section) const {
 	lock_guard<mutex> lock(_mutex);
 	return _getAllValues(section);
@@ -124,8 +129,11 @@ bool IniContents::setValue(const wstring& section, const wstring& key, wstring v
 	return _setValue(section, key, value, overrideIfExists);
 }
 
-bool IniContents::setValue(const wstring& section, const wstring& key, int value, bool overrideIfExists)
-{
+bool IniContents::setValue(const wstring& section, const wstring& key, int value, bool overrideIfExists) {
+	return setValue(section, key, to_wstring(value), overrideIfExists);
+}
+
+bool IniContents::setValue(const wstring& section, const wstring& key, double value, bool overrideIfExists) {
 	return setValue(section, key, to_wstring(value), overrideIfExists);
 }
 
@@ -227,7 +235,7 @@ bool IniContents::_setValue(const wstring& section, const wstring& key, wstring 
 bool IniContents::_removeValue(const wstring& section, const wstring& key) {
 	size_t keyIndex = _iniParser.findKeyIndex(_iniLines, section, key);
 	if (keyIndex == wstring::npos) return false;
-	
+
 	_iniLines.erase(_iniLines.begin() + keyIndex);
 	return true;
 }
@@ -335,7 +343,7 @@ size_t IniContents::createSectionIfNotExist(const wstring& section) {
 	size_t sectionIndex = _iniParser.findSectionIndex(_iniLines, section);
 	if (indexValid(sectionIndex)) return sectionIndex;
 
-	if(!_iniLines[_iniLines.size() - 1].empty()) _iniLines.push_back(L"");
+	if (!_iniLines[_iniLines.size() - 1].empty()) _iniLines.push_back(L"");
 	_iniLines.push_back(_iniParser.formatSection(section));
 	return _iniLines.size() - 1;
 }
@@ -356,55 +364,59 @@ wstring IniContents::replace(const wstring& input, const wstring& target, const 
 //// *** PUBLIC IniFileHandler
 
 IniContents* IniFileHandler::readIni() const {
-	lock_guard<mutex> lock(_mutex);
-	return readIni_();
+	string contentsStr;
+
+	{
+		lock_guard<mutex> lock(_mutex);
+		contentsStr = getIniFileContents();
+	}
+
+	return parseIniFileContents(contentsStr);
 }
 
 void IniFileHandler::saveIni(IniContents& content, const string& newFilePath) const {
-	lock_guard<mutex> lock(_mutex);
-	_saveIni(content);
+	string contentStr = StrConverter::convertFromW(content.stringCopy());
+	string filePath = !newFilePath.empty() ? newFilePath : _iniFilePath;
+
+	{
+		lock_guard<mutex> lock(_mutex);
+		saveIniFileContents(contentStr, filePath);
+	}
 }
 
 
 // *** PRIVATE IniFileHandler
 
-void IniFileHandler::_saveIni(IniContents& content, const string& newFilePath) const {
-	wstring fileContents = content.stringCopy();
-	_saveIni(fileContents, newFilePath);
-}
-
-void IniFileHandler::_saveIni(const wstring& content, const string& newFilePath) const {
-	string filePath = !newFilePath.empty() ? newFilePath : _iniFilePath;
+void IniFileHandler::saveIniFileContents(const string& content, const string& filePath) const {
 	ofstream f(filePath);
 	if (!f.is_open()) throw runtime_error("Could not open ini file: " + filePath);
 
-	f << StrConverter::convertFromW(content);
+	f << content;
 	f.close();
 }
 
-IniContents* IniFileHandler::readIni_() const {
-	vector<wstring> lines = getIniFileContents();
-	return new IniContents(lines);
-}
-
-vector<wstring> IniFileHandler::getIniFileContents() const {
+string IniFileHandler::getIniFileContents() const {
 	ifstream f(_iniFilePath);
+
 	if (!f.is_open()) {
 		f.close();
-		_saveIni(L"");
+		saveIniFileContents("", _iniFilePath); //create blank ini file if not exists
 		f = ifstream(_iniFilePath);
 
-		if(!f.is_open())
+		if (!f.is_open())
 			throw runtime_error("Could not open ini file: " + _iniFilePath);
 	}
 
 	stringstream buffer;
 	buffer << f.rdbuf();
 	f.close();
+	return buffer.str();
+}
 
-	wstring contents = StrConverter::convertToW(buffer.str());
-	vector<wstring> lines = splitLines(contents);
-	return lines;
+IniContents* IniFileHandler::parseIniFileContents(const string& fileContents) const {
+	wstring contentsW = StrConverter::convertToW(fileContents);
+	vector<wstring> lines = splitLines(contentsW);
+	return new IniContents(lines);
 }
 
 vector<wstring> IniFileHandler::splitLines(const wstring& text) const {

@@ -2,6 +2,7 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
+#include "_Libraries/strhelper.h"
 #include <windows.h>
 #include <cstdint>
 #include <string>
@@ -29,16 +30,21 @@ struct SKIP {};
 inline void Skip() { throw SKIP(); }
 
 
+
 class SentenceInfoWrapper {
 public:
 	SentenceInfoWrapper(SentenceInfo& sentenceInfo) : _sentenceInfo(sentenceInfo) { }
 
 	bool isActiveThread() {
-		return _sentenceInfo["current select"];
+		return getCurrentSelect();
 	}
 
 	bool threadIsConsoleOrClipboard() {
 		return getProcessId() == 0;
+	}
+
+	int64_t getCurrentSelect() {
+		return _sentenceInfo["current select"];
 	}
 
 	wstring getProcessIdW() {
@@ -62,11 +68,15 @@ public:
 		return _sentenceInfo["text number"];
 	}
 
-	wstring getThreadName() {
+	string getThreadName() {
+		wstring threadNameW = getThreadNameW();
+		return StrHelper::convertFromW(threadNameW);
+	}
+
+	wstring getThreadNameW() {
 		int64_t threadNamePtr = _sentenceInfo["text name"];
 		return wstring(reinterpret_cast<wchar_t*>(threadNamePtr));
 	}
 private:
 	SentenceInfo _sentenceInfo;
 };
-
