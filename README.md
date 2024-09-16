@@ -17,5 +17,7 @@ Here is a list of currently available extensions:
 	1. **[Example Script](Textractor.PythonInterpretter/scripts/ScriptExample)**: Merely an example of how to implement a python script compatible with this extension. The code itself merely prepends an incrementing number to the currently processed sentence.
 	2. **[JP to Romaji](Textractor.PythonInterpretter/scripts/JpToRomaji)**: Leverages NLP to append the romaji form of the currently processed sentence.
 
+5. [**TranslationCache**](Textractor.TranslationCache): Provides an extension-agnostic way to cache real-time translations (to a cache file), to prevent re-processing previously translated lines. Should work with most translation extensions, including "GptApiTranslate".
+
 <br>
 Documentation for each extension is available in their corresponding page in this repo.
