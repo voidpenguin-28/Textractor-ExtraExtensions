@@ -151,6 +151,21 @@ Here are some example integrations
 		```
 	- You may want/need to adjust the existing url in the future when changes to the API are made.
 		- For example, the current url references the 'v1beta' model version, but in the future you may want to adjust this to a newer version as they become available.
+2. **[LM Studio Local Server](https://lmstudio.ai/docs/api/server)**
+	- Open LM Studio, download the desired model you would like to run, then load the model onto your system via the load model top-bar.
+	- In LM Studio, go to the developer tab (icon should look like a green square console).
+		- If you plan to use this local server on a different device on the local network, then enable option "Serve on Local Network".
+		- Then click "Start Server"
+	- Set the following config values in your ini config.
+		```ini
+		Url=http://localhost:1234/v1/chat/completions
+		ApiKey=asdf1234
+		Model=***NAME OF MODEL THAT IS RUNNING (ex: aya-expanse-8b)***
+		```
+ 	- Notes:
+		- If you enabled the "Serve on Local Network" option, then you will need to adjust the url to the local ip of your server: *http://**SERVER_LOCAL_IP_HERE**:1234/v1/chat/completions* (ex: *http://192.168.1.15:1234/v1/chat/completions*)
+		- The default port LM Studio Server uses is '1234'. If you change this, then you must update your url to use the correct port number: *http://localhost:**PORT_NUMBER_HERE**/v1/chat/completions* (ex: *http://localhost:8888/v1/chat/completions*)
+		- The ApiKey value of 'asdf1234' is a pointless dummy value, since there is no api key used in these requests.
 ## Config Values
 Here is the list of currently supported config values for this extension.
 
