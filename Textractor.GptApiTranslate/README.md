@@ -166,6 +166,12 @@ Here are some example integrations
 		- If you enabled the "Serve on Local Network" option, then you will need to adjust the url to the local ip of your server: *http://**SERVER_LOCAL_IP_HERE**:1234/v1/chat/completions* (ex: *http://192.168.1.15:1234/v1/chat/completions*)
 		- The default port LM Studio Server uses is '1234'. If you change this, then you must update your url to use the correct port number: *http://localhost:**PORT_NUMBER_HERE**/v1/chat/completions* (ex: *http://localhost:8888/v1/chat/completions*)
 		- The ApiKey value of 'asdf1234' is a pointless dummy value, since there is no api key used in these requests.
+		- If the model is not properly obeying your prompts/instructions, then try setting the *SysMsgPrefix* to the *UserMsgPrefix*.
+			- Ex:
+			```ini
+			SysMsgPrefix=Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines). However, only return the translation for the line that starts with '99:'.
+   			UserMsgPrefix=Translate novel script to natural fluent EN. Preserve numbering. Use all JP input lines as context (previous lines). However, only return the translation for the line that starts with '99:'.
+			```
 ## Config Values
 Here is the list of currently supported config values for this extension.
 
