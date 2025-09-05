@@ -27,7 +27,7 @@ inline string getModuleName(const HMODULE& handle) {
 	catch (exception& ex) {
 		string errMsg = "Failed to retrieve extension name.\n";
 		errMsg += ex.what();
-		showErrorMessage(errMsg.c_str(), "VndbNameMapper");
+		showErrorMessage(errMsg.c_str(), "TranslationCache");
 		throw;
 	}
 }
