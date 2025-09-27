@@ -225,7 +225,7 @@ private:
 
 		if (url != _currUrl) assignUrl(url);
 		if (headerListChanged(headers)) assignHeaderList(headers);
-		if (connectTimeoutSecs = _currConnectTimeoutSecs) assignConnectTimeoutSecs(connectTimeoutSecs);
+		if (connectTimeoutSecs != _currConnectTimeoutSecs) assignConnectTimeoutSecs(connectTimeoutSecs);
 		
 		_currBody = body;
 		if (_currRequestPost) curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, _currBody.c_str());
