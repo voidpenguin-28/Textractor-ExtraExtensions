@@ -74,7 +74,7 @@ private:
 	const wstring _enNameEnd = L"</";
 
 	const vector<wstring> _genderFindSubStrs {
-		L"<abbr", L"icon-gen-", L"title=\""
+		L"<abbr", L"icon-char-", L"title=\"Sex: "
 	};
 	const wstring _genderEnd = L"\"";
 

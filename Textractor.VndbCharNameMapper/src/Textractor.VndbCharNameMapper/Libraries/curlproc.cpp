@@ -3,7 +3,6 @@
 #include <windows.h>
 #include <stdexcept>
 
-
 namespace curlproc {
     static constexpr DWORD BUFSIZE = 4096;
 
@@ -41,6 +40,7 @@ namespace curlproc {
 		if (userAgent.length() > 0) command += " -A \"" + userAgent + "\"";
 		if (postData.length() > 0) command += " -d \"" + replace(postData, "\"", "\\\"") + "\"";
 
+        command += " -b _";
 		command += " " + url;
 		return command;
 	}

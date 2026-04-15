@@ -2,13 +2,13 @@
 #pragma once
 #include "HtmlParser.h"
 #include "../Libraries/strhelper.h"
+#include "../Libraries/winmsg.h"
 #include "../CharMappingConverter.h"
 #include "../GenderStrMapper.h"
 #include <algorithm>
 #include <functional>
 #include <regex>
 #include <sstream>
-
 
 class RegexVndbHtmlParser : public HtmlParser {
 public:
@@ -57,7 +57,7 @@ private:
 	const wregex _enNamePattern =
 		wregex(L"<a href=[^>]+>([^<]+)");
 	const wregex _genderPattern =
-		wregex(L"<abbr class=\"icon-gen[^\"]+\" title=\"([^\"]+)\"");
+		wregex(L"<abbr class=\"(?:icon-gen|icon-char)[^\"]+\" title=\"(?:Sex: )?([^\"]+)\"");
 
 	const CharMappingConverter& _charMappingConverter;
 	const GenderStrMapper& _genderStrMap;

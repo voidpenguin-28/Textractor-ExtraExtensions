@@ -40,13 +40,13 @@ public:
 	CharMappings getNameMappings(const string& vnId) override {
 		if (vnId.empty()) return CharMappings();
 		string url = createUrl(vnId);
-		string html = getAllCharsHtmlPage(url);
+		string html = getAllCharsHtmlPage(url, vnId);
 
 		CharMappings nameMap = _htmlParser.getNameMappings(html);
 		return nameMap;
 	}
 private:
-	const vector<string> _httpHeaders = { "Cookie: vndb_samesite=1" };
+	const vector<string> _httpHeaders = { "Cookie: vndb_view=2-%2f{0}%2fchars" };
 	const function<string()> _urlTemplateGetter;
 	const HttpClient& _httpClient;
 	const HtmlParser& _htmlParser;
@@ -63,11 +63,26 @@ private:
 		return urlTemplate.replace(tmplIndex, tmplPar.length(), vnId);
 	}
 
-	string getAllCharsHtmlPage(string baseUrl) const {
-		string html = _httpClient.httpGet(baseUrl);
-		string spoilCharsPath = _htmlParser.extractSpoilCharsPath(html);
-		html = _httpClient.httpGet(baseUrl + spoilCharsPath, _httpHeaders);
+	string getAllCharsHtmlPage(string baseUrl, string vnId) const {
+		vector<string> httpHeaders = getHeaders(vnId);
+		string html = _httpClient.httpGet(baseUrl, httpHeaders);
 		return html;
+	}
+
+	vector<string> getHeaders(string vnId) const {
+		static const string tmplPar = "{0}";
+		vector<string> headers = {};
+
+		for (size_t i = 0; i < _httpHeaders.size(); i++) {
+			string header = _httpHeaders[i];
+
+			size_t templIndex = header.find(tmplPar);
+			if (templIndex != string::npos) header = header.replace(templIndex, tmplPar.length(), vnId);
+			
+			headers.push_back(header);
+		}
+
+		return headers;
 	}
 };
 
